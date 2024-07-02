@@ -13,16 +13,19 @@ const char *nn_activ_str[] = {
 int main ()
 {
     nn_spec_t mlp_spec[] = {
-        input_layer(256),
-        dense_layer(100, b, relu, l2(1.0e-4)),
-        dense_layer(50, b, linear, l2(1.0e-4)),
+        input_layer(3),
+        dense_layer(8, b, relu, l2(1.0e-4)),
+        dense_layer(10, b, linear, l2(1.0e-4)),
         relu_layer(),
-        dense_layer(10, x, logistic),
+        dense_layer(6, x, logistic),
         output_layer()
     };
 
     nn_struct_t *mlp = nn_create(mlp_spec);
     print_nn_struct(mlp);
+
+    double x[3] = {8.2, -4.5, 3.7};
+    nn_forward_pass(mlp, x);
 
     nn_destroy(mlp);
 

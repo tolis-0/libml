@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include <stdio.h>
 #include "nn.h"
 
@@ -27,8 +28,8 @@
 
 #define _nn_alloc_check(var, type)                                  \
     nn->var = malloc(nn->n_layers * sizeof(type));                  \
-    _nn_create_error(nn->var == NULL,                                \
-        "failed to allocate memory for " #var)
+    _nn_create_error(nn->var == NULL,                               \
+        "failed to allocate memory for " #var);
 
 
 /*  Helper function to randomize the starting weights */
@@ -57,7 +58,7 @@ void _nn_measure_layers(nn_struct_t *nn,
     nn_spec_t *spec, const char *file, int line)
 {
     int i;
-    
+
     for (i = 0, nn->n_layers = -1; spec[i].type != OUTPUT; i++) {
         if (spec[i].activ != LINEAR_ACTIV) nn->n_layers++;
         nn->n_layers++;
@@ -82,7 +83,11 @@ void _nn_alloc(nn_struct_t *nn, const char *file, int line)
     _nn_alloc_check(reg_type, nn_reg_t);
     _nn_alloc_check(reg_p, weight_t);
 
-    _nn_alloc_check(outputs, value_t *);
+    /*  nn->outputs[-1] would point to the input for ease */
+    nn->outputs = malloc((nn->n_layers + 1) * sizeof(value_t *));
+    _nn_create_error(nn->outputs == NULL,
+        "failed to allocate memory for outputs");
+    nn->outputs++;
 }
 
 
@@ -114,8 +119,12 @@ activation_redo:
                     goto activation_redo;
                 }
                 break;
-            case RELU: activation_template(RELU); break;
-            case LOGISTIC: activation_template(LOGISTIC); break;
+            case RELU:
+                activation_template(RELU);
+                break;
+            case LOGISTIC:
+                activation_template(LOGISTIC);
+                break;
             case INPUT:
                 _nn_create_error(1, "input layer in the middle of the network");
                 break; // for implicit fallthrough warning
@@ -150,6 +159,8 @@ void _nn_create_weights(nn_struct_t *nn, const char *file, int line)
         "failed to allocate memory for biases, "
         "N = %d", total_b);
 
+    _nn_rand_weights(nn);
+
     for (i = i_w = i_b = 0; i < nn->n_layers; i++) {
         if (nn->n_weights[i] == 0) nn->weights[i] = NULL;
         else {
@@ -170,7 +181,7 @@ void _nn_create_weights(nn_struct_t *nn, const char *file, int line)
 void _nn_alloc_interm(nn_struct_t *nn, const char *file, int line)
 {
     int i, m_dims;
-    
+
     m_dims = nn->input_dims;
     for (i = 0; i < nn->n_layers; i++) {
         nn->outputs[i] = malloc(nn->n_dims[i] * sizeof(value_t));
@@ -223,7 +234,7 @@ void _nn_destroy(nn_struct_t *nn, const char *file, int line)
     free(nn->reg_p);
 
     for (int i = 0; i < nn->n_layers; i++) free(nn->outputs[i]);
-    free(nn->outputs);
+    free(nn->outputs - 1);
     free(nn->g_in);
     free(nn->g_out);
 
@@ -232,7 +243,31 @@ void _nn_destroy(nn_struct_t *nn, const char *file, int line)
 
 
 /*  Does a full forward pass of the neural network */
-void nn_forward_pass(nn_struct_t *nn)
+void nn_forward_pass(nn_struct_t *nn, value_t* input)
 {
-    // TODO
+    int i, dims;
+
+    nn->outputs[-1] = input;
+    dims = nn->input_dims;
+
+    for (i = 0; i < nn->n_layers; i++) {
+        switch(nn->op_types[i]) {
+            case NO_OP:
+                memcpy(nn->outputs[i], nn->outputs[i-1],
+                    nn->n_dims[i] * sizeof(value_t));
+                break;
+            case DENSE_OP:;
+                dim_t d = {dims, nn->n_dims[i]};
+                dense_forward(d, nn->outputs[i-1],
+                    nn->weights[i], nn->outputs[i]);
+                break;
+            case RELU_OP:
+                relu_forward(dims, nn->outputs[i-1], nn->outputs[i]);
+                break;
+            case LOGISTIC_OP:
+                logistic_forward(dims, nn->outputs[i-1], nn->outputs[i]);
+                break;
+        }
+        dims = nn->n_dims[i];
+    }
 }
