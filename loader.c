@@ -65,7 +65,7 @@ unsigned int mnist_sh(uint8_t type)
 void *_mnist_load_alloc(const char *filename, uint8_t type, uint8_t dim,
     const char *file, int line)
 {
-    int i, read_bytes, data_size;
+    int i, read_items, n_items, type_size, total_size;
     uint8_t *data = NULL, metadata[4];
     uint32_t dimensions[5];
     FILE *fs = fopen(filename, "rb");
@@ -73,12 +73,12 @@ void *_mnist_load_alloc(const char *filename, uint8_t type, uint8_t dim,
     _mnist_load_alloc_error(error, fs == NULL,
         "failed to open file with name %s", filename);
 
-    read_bytes = fread(metadata, sizeof(uint8_t), 4, fs);
+    read_items = fread(metadata, sizeof(uint8_t), 4, fs);
 
     /*  Doing various checks based on the magic number */
-    _mnist_load_alloc_error(error, read_bytes != 4,
+    _mnist_load_alloc_error(error, read_items != 4,
         "magic number read %d/4 bytes in %s",
-        read_bytes, filename);
+        read_items, filename);
 
     _mnist_load_alloc_error(error, ((uint16_t *) metadata)[0] != 0x0000,
         "magic number first 2 bytes are 0x%04X/0x0000 in %s",
@@ -100,23 +100,58 @@ void *_mnist_load_alloc(const char *filename, uint8_t type, uint8_t dim,
         "number of dimensions %d is too large in %s",
         metadata[3], filename);
 
-    read_bytes = fread(dimensions, sizeof(uint32_t), metadata[3], fs);
+    read_items = fread(dimensions, sizeof(uint32_t), metadata[3], fs);
 
-    _mnist_load_alloc_error(error, read_bytes != metadata[3],
-        "dimensions read %d/%d bytes in %s",
-        read_bytes, metadata[3], filename);
+    /*  MNIST files are normally stored in big-endian format */
+    #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+        for (i = 0; i < metadata[3]; i++)
+            dimensions[i] = __builtin_bswap32(dimensions[i]);
+    #endif
 
-    for (i = 0, data_size = 1; i < metadata[3]; i++) {
+    _mnist_load_alloc_error(error, read_items != metadata[3],
+        "dimensions read %d/%d in %s",
+        read_items, metadata[3], filename);
+
+    for (i = 0, n_items = 1; i < metadata[3]; i++) {
         _mnist_load_alloc_error(error, dimensions[i] == 0,
             "dimension %d is 0 in %s", i, filename);
-        data_size *= dimensions[i];
+        n_items *= dimensions[i];
     }
 
-    data = malloc(data_size * mnist_sh(metadata[2]));
+    type_size = mnist_sh(metadata[2]);
+    total_size = n_items * type_size;
+    data = malloc(total_size);
 
     _mnist_load_alloc_error(error, data == NULL,
         "memory allocation of data failed in %s (size %d)",
-            filename, data_size * mnist_sh(metadata[2]));
+            filename, total_size);
+
+    read_items = fread(data, type_size, n_items, fs);
+
+    #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+        switch (type_size) {
+            case 2:;
+                uint16_t *data16 = (uint16_t *) data;
+                for (i = 0; i < n_items; i++)
+                    data16[i] = __builtin_bswap16(data16[i]);
+                break;
+            case 4:;
+                uint32_t *data32 = (uint32_t *) data;
+                for (i = 0; i < n_items; i++)
+                    data32[i] = __builtin_bswap32(data32[i]);
+                break;
+            case 8:;
+                uint64_t *data64 = (uint64_t *) data;
+                for (i = 0; i < n_items; i++)
+                    data64[i] = __builtin_bswap64(data64[i]);
+                break;
+            default:;
+        }
+    #endif
+
+    _mnist_load_alloc_error(error, read_items != n_items,
+        "data read %d/%d in %s",
+        read_items, n_items, filename);
 
     fclose(fs);
 
