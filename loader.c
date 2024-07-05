@@ -157,3 +157,25 @@ void *_mnist_load_alloc(const char *filename, uint8_t type, uint8_t dim,
 
     return data;
 }
+
+
+#define define_ml_convert_f(name, type)         \
+value_t *ml_##name##_convert(type *data, int n) \
+{                                               \
+    int i;                                      \
+    value_t *new;                               \
+                                                \
+    new = malloc(n * sizeof(value_t));          \
+                                                \
+    for (i = 0; i < n; i++)                     \
+        new[i] = (value_t) data[i];             \
+                                                \
+    free(data);                                 \
+    return new;                                 \
+}
+
+define_ml_convert_f(ubyte, uint8_t);
+define_ml_convert_f(sbyte, int8_t);
+define_ml_convert_f(short, short);
+define_ml_convert_f(int, int);
+define_ml_convert_f(float, float);

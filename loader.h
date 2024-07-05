@@ -24,6 +24,12 @@ typedef int dim3_t[3];
 /*  loader.c declarations */
 void *_mnist_load_alloc(const char *filename, uint8_t type, uint8_t dim,
     const char *file, int line);
+value_t *ml_ubyte_convert(uint8_t *data, int n);
+value_t *ml_sbyte_convert(int8_t *data, int n);
+value_t *ml_short_convert(short *data, int n);
+value_t *ml_int_convert(int *data, int n);
+value_t *ml_float_convert(float *data, int n);
+
 
 /*  Macros that provide debugging info */
 #define mnist_load_alloc(fn, type, dim) \
