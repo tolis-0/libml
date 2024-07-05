@@ -16,8 +16,7 @@
 #ifndef _STANDARD_ML_TYPES_
 #define _STANDARD_ML_TYPES_
 typedef double weight_t, value_t, grad_t;
-typedef int dim_t[2];
-typedef int dim3_t[3];
+typedef int dim_t[2], dim3_t[3];
 #endif // _STANDARD_ML_TYPES_
 
 
