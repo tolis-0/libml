@@ -13,6 +13,14 @@
 #define DOUBLE_TYPE 0x0E
 
 
+#ifndef _STANDARD_ML_TYPES_
+#define _STANDARD_ML_TYPES_
+typedef double weight_t, value_t, grad_t;
+typedef int dim_t[2];
+typedef int dim3_t[3];
+#endif // _STANDARD_ML_TYPES_
+
+
 /*  loader.c declarations */
 void *_mnist_load_alloc(const char *filename, uint8_t type, uint8_t dim,
     const char *file, int line);
