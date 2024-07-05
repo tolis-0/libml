@@ -11,6 +11,7 @@ typedef int dim_t[2], dim3_t[3];
 
 /*  normalization.c declarations */
 void norm_minmax(value_t *data, int n, int m);
+void norm_standard(value_t *data, int n, int m);
 
 
 #endif // _NORMALIZATION_H
