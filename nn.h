@@ -130,13 +130,15 @@ typedef struct {
     weight_t *reg_p;
 
     value_t **outputs;
+    value_t **batch_outputs;
     value_t *g_out;
     value_t *g_in;
 } nn_struct_t;
 
 
 /*  layers.c declarations */
-void dense_forward(dim_t d, const value_t *x, const weight_t *W, value_t *y);
+void dense_forward(dim_t d, const value_t *x, const weight_t *W,
+    int has_bias, const weight_t *b, value_t *y);
 void dense_backward(dim_t d, value_t *x, weight_t *W,
     int calc_x, grad_t *Gy, grad_t *Gx, grad_t *GW);
 
