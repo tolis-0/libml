@@ -27,10 +27,11 @@
     nn->reg_type[j] = NONE, nn->reg_p[j] = 0;
 
 #define _nn_alloc_check(var, type)                                  \
-    nn->var = malloc(nn->n_layers * sizeof(type));                  \
-    _nn_create_error(nn->var == NULL,                               \
-        "failed to allocate memory for " #var);
-
+    do {                                                            \
+        nn->var = malloc(nn->n_layers * sizeof(type));              \
+        _nn_create_error(nn->var == NULL,                           \
+            "failed to allocate memory for " #var);                 \
+    } while (0)
 
 /*  Helper function to randomize the starting weights */
 void _nn_rand_weights(nn_struct_t *nn)
@@ -242,7 +243,7 @@ void _nn_destroy(nn_struct_t *nn, const char *file, int line)
 }
 
 
-/*  Does a full forward pass of the neural network */
+/*  Does a full forward pass of the neural network with a single input */
 void nn_forward_pass(nn_struct_t *nn, value_t* input)
 {
     int i, dims;
@@ -258,8 +259,8 @@ void nn_forward_pass(nn_struct_t *nn, value_t* input)
                 break;
             case DENSE_OP:;
                 dim_t d = {dims, nn->n_dims[i]};
-                dense_forward(d, nn->outputs[i-1],
-                    nn->weights[i], nn->outputs[i]);
+                dense_forward(d, nn->outputs[i-1], nn->weights[i],
+                    nn->n_biases[i] > 1, nn->biases[i], nn->outputs[i]);
                 break;
             case RELU_OP:
                 relu_forward(dims, nn->outputs[i-1], nn->outputs[i]);
