@@ -137,10 +137,15 @@ typedef struct {
 
 
 /*  layers.c declarations */
-void dense_forward(dim_t d, const value_t *x, const weight_t *W,
+void dense_forward(const dim_t d, const value_t *x, const weight_t *W,
     int has_bias, const weight_t *b, value_t *y);
-void dense_backward(dim_t d, value_t *x, weight_t *W,
-    int calc_x, grad_t *Gy, grad_t *Gx, grad_t *GW);
+void dense_backward(const dim_t d, const value_t *x, const weight_t *W,
+    int calc_x, const grad_t *Gy, grad_t *Gx, grad_t *GW);
+void batch_dense_forward(const dim3_t d, const value_t *x, const weight_t *W,
+    int has_bias, const weight_t *b, const value_t *ones, value_t *y);
+void batch_dense_backward(const dim3_t d, const value_t *x, const weight_t *W,
+    int calc_x, const value_t *ones, const grad_t *Gy, grad_t *Gx, grad_t *GW,
+    int has_bias, grad_t *Gb);
 
 
 /*  activations.c declarations */
