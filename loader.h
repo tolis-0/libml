@@ -28,6 +28,7 @@ value_t *ml_sbyte_convert(int8_t *data, int n);
 value_t *ml_short_convert(short *data, int n);
 value_t *ml_int_convert(int *data, int n);
 value_t *ml_float_convert(float *data, int n);
+value_t *ml_ubyte_onehot(uint8_t *data, int n, int categories);
 
 
 /*  Macros that provide debugging info */

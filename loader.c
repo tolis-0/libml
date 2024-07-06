@@ -179,3 +179,18 @@ define_ml_convert_f(sbyte, int8_t);
 define_ml_convert_f(short, short);
 define_ml_convert_f(int, int);
 define_ml_convert_f(float, float);
+
+
+value_t *ml_ubyte_onehot(uint8_t *data, int n, int categories)
+{
+    int i;
+    value_t *new;
+
+    new = calloc(n * categories, sizeof(value_t));
+
+    for (i = 0; i < n; i++)
+        new[i*categories + data[i]] = 1.0;
+
+    free(data);
+    return new;
+}
