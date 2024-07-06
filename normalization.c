@@ -1,7 +1,6 @@
 #include <cblas.h>
 #include <string.h>
 #include <stdlib.h>
-#include <stdio.h>
 #include <math.h>
 #include "normalization.h"
 
@@ -75,8 +74,7 @@ void norm_standard(value_t *data, int n, int m)
         }
     }
 
-    /* Scale each row of the matrix by the corresponding deviation 
-       Data = D'/sigma                                               */
+    /* Scale each row of the matrix by the corresponding deviation */
     for (i = 0; i < m; ++i)
         cblas_dscal(n, deviation[i], data + i, m);
 
