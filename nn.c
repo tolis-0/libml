@@ -342,4 +342,6 @@ void nn_forward_pass(nn_struct_t *nn, value_t *input)
                 break;
         }
     }
+
+    nn->output = nn->outputs[nn->n_layers - 1];
 }
