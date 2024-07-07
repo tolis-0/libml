@@ -317,12 +317,11 @@ void _nn_free_t(nn_struct_t *nn)
 
 
 /*  Does a full forward pass of the neural network with a single input */
-void nn_forward_pass(nn_struct_t *nn, value_t* input)
+void nn_forward_pass(nn_struct_t *nn, value_t *input)
 {
-    int i, dims;
+    int i;
 
     nn->outputs[-1] = input;
-    dims = nn->input_dims;
 
     for (i = 0; i < nn->n_layers; i++) {
         switch(nn->op_types[i]) {
@@ -331,17 +330,16 @@ void nn_forward_pass(nn_struct_t *nn, value_t* input)
                     nn->n_dims[i] * sizeof(value_t));
                 break;
             case DENSE_OP:;
-                dim_t d = {dims, nn->n_dims[i]};
+                dim_t d = {nn->n_dims[i-1], nn->n_dims[i]};
                 dense_forward(d, nn->outputs[i-1], nn->weights[i],
-                    nn->n_biases[i] > 1, nn->biases[i], nn->outputs[i]);
+                    nn->n_biases[i] > 0, nn->biases[i], nn->outputs[i]);
                 break;
             case RELU_OP:
-                relu_forward(dims, nn->outputs[i-1], nn->outputs[i]);
+                relu_forward(nn->n_dims[i], nn->outputs[i-1], nn->outputs[i]);
                 break;
             case LOGISTIC_OP:
-                logistic_forward(dims, nn->outputs[i-1], nn->outputs[i]);
+                logistic_forward(nn->n_dims[i], nn->outputs[i-1], nn->outputs[i]);
                 break;
         }
-        dims = nn->n_dims[i];
     }
 }
