@@ -133,6 +133,8 @@ activation_redo:
                 _nn_create_error(1, "layer type not recognized: %d", spec[i].type);
         }
     }
+
+    nn->output_dims = dims;
 }
 
 
@@ -148,7 +150,8 @@ void _nn_create_weights(nn_struct_t *nn, const char *file, int line)
 
     nn->total_weights = total_w;
     nn->total_biases = total_b;
-    nn->biases_ptr = nn->weights_ptr = NULL;
+    nn->biases_ptr = NULL;
+    nn->weights_ptr = NULL;
 
     nn->weights_ptr = malloc(total_w * sizeof(weight_t));
     if (total_b > 0) nn->biases_ptr = calloc(total_b, sizeof(weight_t));
@@ -163,14 +166,16 @@ void _nn_create_weights(nn_struct_t *nn, const char *file, int line)
     _nn_rand_weights(nn);
 
     for (i = i_w = i_b = 0; i < nn->n_layers; i++) {
-        if (nn->n_weights[i] == 0) nn->weights[i] = NULL;
-        else {
+        if (nn->n_weights[i] == 0) {
+            nn->weights[i] = NULL;
+        } else {
             nn->weights[i] = nn->weights_ptr + i_w;
             i_w += nn->n_weights[i];
         }
 
-        if (nn->n_biases[i] == 0) nn->biases[i] = NULL;
-        else {
+        if (nn->n_biases[i] == 0) {
+            nn->biases[i] = NULL;
+        } else {
             nn->biases[i] = nn->biases_ptr + i_b;
             i_b += nn->n_biases[i];
         }

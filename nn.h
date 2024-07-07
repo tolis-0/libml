@@ -113,6 +113,7 @@ typedef struct {
 typedef struct {
     int n_layers;
     int input_dims;
+    int output_dims;
 
     nn_ops_t *op_types;
     int *n_dims;
