@@ -420,3 +420,57 @@ void nn_batch_backward_pass(nn_struct_t *nn, int batch_size)
 
 }
 
+
+/*  Trains the neural network */
+void nn_train(nn_struct_t *nn, int epochs, int batch_size, int set_size,
+    value_t *x, value_t *t)
+{
+    int i, j, batch_num;
+
+    batch_num = set_size / batch_size;
+
+    _nn_alloc_train(nn, batch_size);
+
+    for (i = 0; i < epochs; i++) {
+        for (j = 0; j < batch_num; j++) {
+            nn->batch_outputs[-1] = x + batch_size * j;
+
+            nn_batch_forward_pass(nn, batch_size);
+            loss_diff_grad(batch_size * nn->output_dims,
+                nn->output, t, nn->g_out);
+            nn_batch_backward_pass(nn, batch_size);
+
+            nn->batch_outputs[-1] = NULL;
+        }
+    }
+
+    _nn_free_t(nn);
+}
+
+
+double nn_test(nn_struct_t *nn, int test_size, value_t *x, value_t *t)
+{
+    int i, j, c = nn->output_dims, arg_max = 0, one_index = 0, correct = 0;
+    value_t val, max;
+
+    _nn_alloc_test(nn, test_size);
+
+    nn->batch_outputs[-1] = x;
+    nn_batch_forward_pass(nn, test_size);
+
+    for (i = 0; i < test_size; i++) {
+        max = 0.0;
+        for (j = 0; j < c; j++) {
+            val = nn->output[i*c + j];
+            one_index = (t[i*c + j] > 0.5) ? j : one_index;
+            max = (val > max) ? (arg_max = j, val) : max;
+        }
+
+        if (arg_max == one_index) correct++;
+    }
+
+    nn->batch_outputs[-1] = NULL;
+    _nn_free_t(nn);
+
+    return correct / (double) test_size;
+}

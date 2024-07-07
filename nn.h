@@ -168,6 +168,10 @@ nn_struct_t *_nn_create(nn_spec_t *spec, const char *file, int line);
 void _nn_destroy(nn_struct_t *nn, const char *file, int line);
 void nn_forward_pass(nn_struct_t *nn, value_t *input);
 void nn_batch_forward_pass(nn_struct_t *nn, int batch_size);
+void nn_train(nn_struct_t *nn, int epochs, int batch_size, int set_size,
+    value_t *x, value_t *t);
+double nn_test(nn_struct_t *nn, int test_size, value_t *x, value_t *t);
+
 
 /*  Macros that provide debugging info */
 #define nn_create(spec) _nn_create(spec, __FILE__, __LINE__)
