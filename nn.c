@@ -26,12 +26,18 @@
     nn->weights[j] = nn->biases[j] = NULL;                          \
     nn->reg_type[j] = NONE, nn->reg_p[j] = 0;
 
-#define _nn_alloc_check(var, type)                                  \
+#define _nn_malloc_trick *
+#define _nn_calloc_trick ,
+
+#define _nn_alloc_check(var, type) _nn_alloc_check2(var, type, m, 0)
+#define _nn_alloc_check2(var, type, m, k)                           \
     do {                                                            \
-        nn->var = malloc(nn->n_layers * sizeof(type));              \
+        nn->var = m##alloc((nn->n_layers + k)                       \
+            _nn_##m##alloc_trick sizeof(type));                     \
         _nn_create_error(nn->var == NULL,                           \
             "failed to allocate memory for " #var);                 \
     } while (0)
+
 
 /*  Helper function to randomize the starting weights */
 void _nn_rand_weights(nn_struct_t *nn)
@@ -73,7 +79,8 @@ void _nn_measure_layers(nn_struct_t *nn,
 /*  Helper function to allocate memory for most of the network struct fields */
 void _nn_alloc(nn_struct_t *nn, const char *file, int line)
 {
-    _nn_alloc_check(n_dims, int);
+    _nn_alloc_check2(n_dims, int, m, 1);
+    nn->n_dims++;
     _nn_alloc_check(op_types, nn_ops_t);
 
     _nn_alloc_check(n_weights, int);
@@ -85,10 +92,13 @@ void _nn_alloc(nn_struct_t *nn, const char *file, int line)
     _nn_alloc_check(reg_p, weight_t);
 
     /*  nn->outputs[-1] would point to the input for ease */
-    nn->outputs = malloc((nn->n_layers + 1) * sizeof(value_t *));
-    _nn_create_error(nn->outputs == NULL,
-        "failed to allocate memory for outputs");
+    _nn_alloc_check2(outputs, value_t *, m, 1);
     nn->outputs++;
+
+    /*  batch_outputs won't be initialized with nn_create
+        so we initialize them to 0 (NULL pointers)        */
+    _nn_alloc_check2(batch_outputs, value_t *, c, 1);
+    nn->batch_outputs++;
 }
 
 
@@ -98,7 +108,7 @@ void _nn_create_layers(nn_struct_t *nn,
 {
     int i, j, dims, layer_type;
 
-    nn->input_dims = dims = spec[0].dims;
+    nn->input_dims = nn->n_dims[-1] = dims = spec[0].dims;
 
     _nn_create_error(nn->input_dims <= 0,
         "invalid number of input dimensions: %d", nn->input_dims);
@@ -186,23 +196,55 @@ void _nn_create_weights(nn_struct_t *nn, const char *file, int line)
 /*  Helper function to allocate memory for intermediate values */
 void _nn_alloc_interm(nn_struct_t *nn, const char *file, int line)
 {
-    int i, m_dims;
+    int i;
 
-    m_dims = nn->input_dims;
     for (i = 0; i < nn->n_layers; i++) {
         nn->outputs[i] = malloc(nn->n_dims[i] * sizeof(value_t));
         _nn_create_error(nn->outputs[i] == NULL,
             "failed to allocate memory for intermediate values, "
             "number of neurons: %d", nn->n_dims[i]);
-        m_dims = (nn->n_dims[i] > m_dims) ? nn->n_dims[i] : m_dims;
     }
 
-    nn->g_in = malloc(m_dims * sizeof(grad_t));
-    nn->g_out = malloc(m_dims * sizeof(grad_t));
+    nn->output = NULL;
+    nn->ones = NULL;
+    nn->g_w = NULL;
+    nn->g_b = NULL;
+    nn->g_out = NULL;
+    nn->g_in = NULL;
+}
 
-    _nn_create_error(nn->g_in == NULL || nn->g_out == NULL,
-        "failed to allocate memory for gradient values, "
-        "max dim size: %d", m_dims);
+
+/*  Helper function to allocate memory for training/testing */
+#define _nn_alloc_train(nn, k) _nn_alloc_t(nn, k, 1)
+#define _nn_alloc_test(nn, k) _nn_alloc_t(nn, k, 0)
+
+void _nn_alloc_t(nn_struct_t *nn, int batch_size, int train)
+{
+    int i, max_dims, max_w, max_b;
+
+    max_b = max_w = 0;
+    max_dims = nn->input_dims;
+
+    for (i = 0; i < nn->n_layers; i++) {
+        nn->batch_outputs[i] = malloc(
+            nn->n_dims[i] * batch_size * sizeof(value_t));
+        if (train) {
+            max_dims = (nn->n_dims[i] > max_dims) ? nn->n_dims[i] : max_dims;
+            max_b = (nn->n_biases[i] > max_b) ? nn->n_biases[i] : max_b;
+            max_w = (nn->n_weights[i] > max_w) ? nn->n_weights[i] : max_w;
+        }
+    }
+
+    nn->ones = malloc(batch_size * sizeof(value_t));
+    for (i = 0; i < batch_size; i++)
+        nn->ones[i] = 1.0;
+
+    if (train) {
+        nn->g_w = malloc(max_w * sizeof(weight_t));
+        nn->g_b = malloc(max_b * sizeof(weight_t));
+        nn->g_out = malloc(batch_size * max_dims * sizeof(value_t));
+        nn->g_in = malloc(batch_size * max_dims * sizeof(value_t));
+    }
 }
 
 
@@ -229,7 +271,7 @@ void _nn_destroy(nn_struct_t *nn, const char *file, int line)
 {
     _nn_destroy_error(nn == NULL, "Neural Network is Null");
 
-    free(nn->n_dims);
+    free(--nn->n_dims);
     free(nn->op_types);
 
     free(nn->n_weights);
