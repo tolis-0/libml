@@ -167,6 +167,7 @@ void logistic_backward(int d, const value_t *y, const grad_t *g_y, grad_t *g_x);
 nn_struct_t *_nn_create(nn_spec_t *spec, const char *file, int line);
 void _nn_destroy(nn_struct_t *nn, const char *file, int line);
 void nn_forward_pass(nn_struct_t *nn, value_t *input);
+void nn_batch_forward_pass(nn_struct_t *nn, int batch_size);
 
 /*  Macros that provide debugging info */
 #define nn_create(spec) _nn_create(spec, __FILE__, __LINE__)
