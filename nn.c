@@ -285,11 +285,34 @@ void _nn_destroy(nn_struct_t *nn, const char *file, int line)
     free(nn->reg_p);
 
     for (int i = 0; i < nn->n_layers; i++) free(nn->outputs[i]);
-    free(nn->outputs - 1);
-    free(nn->g_in);
-    free(nn->g_out);
+    free(--nn->outputs);
+    free(--nn->batch_outputs);
 
     free(nn);
+}
+
+
+/*  Helper function to free memory allocated for training */
+void _nn_free_t(nn_struct_t *nn)
+{
+    for (int i = 0; i < nn->n_layers; i++) {
+        free(nn->batch_outputs[i]);
+        nn->batch_outputs[i] = NULL;
+    }
+
+    nn->batch_outputs[-1] = NULL;
+
+    free(nn->ones);
+    if (nn->g_w != NULL) free(nn->g_w);
+    if (nn->g_b != NULL) free(nn->g_b);
+    if (nn->g_in != NULL) free(nn->g_in);
+    if (nn->g_out != NULL) free(nn->g_out);
+
+    nn->ones = NULL;
+    nn->g_w = NULL;
+    nn->g_b = NULL;
+    nn->g_out = NULL;
+    nn->g_in = NULL;
 }
 
 
