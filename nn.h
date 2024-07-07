@@ -132,7 +132,13 @@ typedef struct {
     weight_t *reg_p;
 
     value_t **outputs;
+    value_t *output;
+
+    /* The arrays below are allocated and freed by train */
     value_t **batch_outputs;
+    value_t *ones;
+    value_t *g_w;
+    value_t *g_b;
     value_t *g_out;
     value_t *g_in;
 } nn_struct_t;
