@@ -173,4 +173,8 @@ void nn_forward_pass(nn_struct_t *nn, value_t* input);
 #define nn_destroy(spec) _nn_destroy(spec, __FILE__, __LINE__)
 
 
+/*  loss.c declarations */
+void loss_diff_grad(int d, const value_t *y, const value_t *t, value_t *grad);
+
+
 #endif // _NN_H
