@@ -217,6 +217,9 @@ nn_struct_t *_nn_create(nn_spec_t *spec, const char *file, int line)
     _nn_create_weights(nn, file, line);
     _nn_alloc_interm(nn, file, line);
 
+    /* Default values: */
+    nn->learning_rate = 0.01;
+
     return nn;
 }
 
