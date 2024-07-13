@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <cblas.h>
-#include "nn.h"
+#include "../include/nn.h"
 
 #ifndef __x86_64__
     #include <time.h>

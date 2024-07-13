@@ -1,5 +1,5 @@
 #include <cblas.h>
-#include "nn.h"
+#include "../include/nn.h"
 
 
 /*	Implements grad = y - t */

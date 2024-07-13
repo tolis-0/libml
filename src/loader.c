@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include "loader.h"
+#include "../include/loader.h"
 
 
 #define __print_error   "\e[1;31merror\e[0;39m"

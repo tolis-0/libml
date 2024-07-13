@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
-#include "normalization.h"
+#include "../include/normalization.h"
 
 
 /*  Appies Min-max feature scaling to data

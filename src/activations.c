@@ -1,5 +1,5 @@
 #include <math.h> 
-#include "nn.h"
+#include "../include/nn.h"
 
 
 void relu_forward(int d, const value_t *x, value_t *y)

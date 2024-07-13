@@ -1,5 +1,5 @@
 #include <cblas.h>
-#include "nn.h"
+#include "../include/nn.h"
 
 
 /*  Computes the result y of a single forward pass in the dense layer */
