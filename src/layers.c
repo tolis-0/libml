@@ -27,13 +27,13 @@ void dense_backward(const dim_t d, const value_t *x, const weight_t *W,
     int d0 = d[0], d1 = d[1], i, j, k = 0;
 
     /* GW = x * Gy^T    | (d0,d1) = (d0,1) * (d1,1)^T */
-    for (i = 0; i < d0; i++)
-        for (j = 0; j < d1; j++)
+    for (j = 0; j < d1; j++)
+        for (i = 0; i < d0; i++)
             GW[k++] = x[i] * Gy[j];
 
     /* Gx = W * Gy      | (d0,1) = (d0,d1) * (d1,1) */
     if (calc_x) {
-        cblas_dgemv(CblasRowMajor, CblasNoTrans,
+        cblas_dgemv(CblasColMajor, CblasNoTrans,
             d0, d1, 1.0, W, d0,
             Gy, 1, 0.0, Gx, 1);
     }
