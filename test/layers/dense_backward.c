@@ -9,10 +9,10 @@
         const dim_t d = {(N), (M)};                             \
         const value_t exp_Gx[(N) + (N)*(M)] = __VA_ARGS__;      \
         const weight_t *exp_GW = exp_Gx + (N)*!!(opt);          \
-        if (opt) {                                              \
-            dense_backward(d, X, W, opt, Gy, Gx, GW);           \
+        dense_backward(d, X, W, opt, Gy,                        \
+            ((opt) ? Gx : NULL), GW);                           \
+        if (opt)                                                \
             __exp_check(name " (Gx)", N, Gx, exp_Gx, 1e-9);     \
-        } else dense_backward(d, X, W, opt, Gy, NULL, GW);      \
         __exp_check(name " (GW)", (N)*(M), GW, exp_GW, 1e-9);   \
     } while (0)
 
