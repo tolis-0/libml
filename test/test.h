@@ -20,8 +20,8 @@
             if (__are_equal(y[i], exp_y[i], (error))) {     \
                 correct++;                                  \
             } else {                                        \
-                printf("Expected %.10lf at %.10lf\n",       \
-                        exp_y[i], y[i]);                    \
+                printf("At %d: expected %.10lf, got "       \
+                    "%.10lf\n", i, exp_y[i], y[i]);         \
             }                                               \
         }                                                   \
         if (correct == n) {                                 \
