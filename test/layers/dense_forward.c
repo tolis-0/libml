@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <assert.h>
 #include "../test.h"
 #include "../../include/nn.h"
 
@@ -16,13 +15,13 @@ int main ()
 {
     __title("layers/dense_forward");
 
-    dense_forward_test("test0", 2, 3,
+    dense_forward_test("2x3 without bias", 2, 3,
         ((value_t[])    {0.7, 0.8}),
         ((weight_t[])   {0.1, 0.2, 0.3, 0.4, 0.5, 0.6}),
     0,  NULL,
                         {0.23, 0.53, 0.83});
 
-    dense_forward_test("test1", 2, 3,
+    dense_forward_test("2x3 with bias", 2, 3,
         ((value_t[])    {0.7, 0.8}),
         ((weight_t[])   {0.1, 0.2, 0.3, 0.4, 0.5, 0.6}),
     1,  ((weight_t[])   {2.0, 3.0, 4.0}),
