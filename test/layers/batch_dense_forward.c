@@ -4,8 +4,8 @@
 
 #define batch_dense_forward_test(name, N, M, K, X, W, opt, B, ...)  \
     do {                                                            \
-        value_t y[(M)*(K)] = {0};                                   \
-        const value_t ones[K] = {[0 ... (K)-1] = 1.0};              \
+        value_t y[(M)*(K)] = __nan_array((M)*(K));                  \
+        const value_t ones[K] = __val_array(K, 1.0);                \
         const dim3_t d = {(N), (M), (K)};                           \
         const value_t exp_y[(M)*(K)] = __VA_ARGS__;                 \
         batch_dense_forward(d, X, W, opt, B, ones,y);               \

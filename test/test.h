@@ -12,6 +12,12 @@
 #define __are_equal(x, y, e) ((((x) > (y)) ? (x) - (y) : (y) - (x)) < (e))
 
 
+/*  Macros for initializing variables and arrays */
+#define __nan_val __builtin_nan("")                         // invalid number
+#define __nan_array(size) {[0 ... (size)-1] = __nan_val}    // output array
+#define __val_array(size, val) {[0 ... (size)-1] = (val)}   // single value array
+
+
 /*  Macro to compare results with expected values */
 #define __exp_check(name, n, y, exp_y, error)               \
     do {                                                    \

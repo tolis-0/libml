@@ -4,8 +4,8 @@
 
 #define dense_backward_test(name, N, M, X, W, Gy, opt, ...)     \
     do {                                                        \
-        value_t Gx[N] = {0};                                    \
-        value_t GW[(M)*(N)] = {0};                              \
+        value_t Gx[N] = __nan_array(N);                         \
+        value_t GW[(M)*(N)] = __nan_array((M)*(N));             \
         const dim_t d = {(N), (M)};                             \
         const value_t exp_Gx[(N) + (N)*(M)] = __VA_ARGS__;      \
         const weight_t *exp_GW = exp_Gx + (N)*!!(opt);          \

@@ -4,7 +4,7 @@
 
 #define dense_forward_test(name, N, M, X, W, opt, B, ...)   \
     do {                                                    \
-        value_t y[M] = {0};                                 \
+        value_t y[M] = __nan_array(M);                      \
         const dim_t d = {(N), (M)};                         \
         const value_t exp_y[M] = __VA_ARGS__;               \
         dense_forward(d, X, W, opt, B, y);                  \
