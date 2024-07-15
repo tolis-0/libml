@@ -2,6 +2,7 @@
 #include "../test.h"
 #include "../../include/nn.h"
 
+
 #define batch_dense_forward_test(name, N, M, K, X, W, opt, B, ...)  \
     do {                                                            \
         value_t y[(M)*(K)] = __nan_array((M)*(K));                  \
@@ -11,6 +12,7 @@
         batch_dense_forward(d, X, W, opt, B, ones,y);               \
         __exp_check(name, (M)*(K), y, exp_y, 1e-9);                 \
     } while (0)
+
 
 int main ()
 {

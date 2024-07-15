@@ -2,6 +2,7 @@
 #include "../test.h"
 #include "../../include/nn.h"
 
+
 #define dense_forward_test(name, N, M, X, W, opt, B, ...)   \
     do {                                                    \
         value_t y[M] = __nan_array(M);                      \
@@ -10,6 +11,7 @@
         dense_forward(d, X, W, opt, B, y);                  \
         __exp_check(name, M, y, exp_y, 1e-9);               \
     } while (0)
+
 
 int main ()
 {

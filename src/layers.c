@@ -34,8 +34,7 @@ void dense_backward(const dim_t d, const value_t *x, const weight_t *W,
     /* Gx = W * Gy      | (d0,1) = (d0,d1) * (d1,1) */
     if (calc_x) {
         cblas_dgemv(CblasColMajor, CblasNoTrans,
-            d0, d1, 1.0, W, d0,
-            Gy, 1, 0.0, Gx, 1);
+            d0, d1, 1.0, W, d0, Gy, 1, 0.0, Gx, 1);
     }
 }
 

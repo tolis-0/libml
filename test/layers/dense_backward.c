@@ -2,6 +2,7 @@
 #include "../test.h"
 #include "../../include/nn.h"
 
+
 #define dense_backward_test(name, N, M, X, W, Gy, opt, ...)     \
     do {                                                        \
         value_t Gx[N] = __nan_array(N);                         \
@@ -15,6 +16,7 @@
             __exp_check(name " (Gx)", N, Gx, exp_Gx, 1e-9);     \
         __exp_check(name " (GW)", (N)*(M), GW, exp_GW, 1e-9);   \
     } while (0)
+
 
 int main ()
 {
