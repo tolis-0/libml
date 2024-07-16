@@ -8,6 +8,13 @@
 #define __test_failed "\e[31mFailed\e[39m"
 
 
+/*  Helper macros to count elements of an array */
+#define __arr_count(x) sizeof(x) / sizeof((x)[0])
+#define __arr_count_null(x)                 \
+    ((x != NULL) ? sizeof(x)      : 0) /    \
+    ((x != NULL) ? sizeof((x)[0]) : 1)
+
+
 /*  Macros to check equality between numbers */
 #define __are_equal(type, x, y, e) (__are_equal_##type(x, y, e))
 #define __are_equal_lf(x, y, e) ((((x) > (y)) ? (x) - (y) : (y) - (x)) < (e))
