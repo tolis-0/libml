@@ -12,13 +12,14 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address -fsanitize=undefined")
 else()
     message(STATUS "Standard Compilation")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2 -march=native -flto")
 endif()
 
 # Include directory with header files
 include_directories(include)
 
 # Collect source and header files
-file(GLOB SOURCES "src/*.c")
+file(GLOB_RECURSE SOURCES "src/*.c")
 file(GLOB HEADERS "include/*.h")
 
 # Compile the library
