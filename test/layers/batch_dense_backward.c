@@ -17,9 +17,9 @@
         assert(__arr_count(GW) == (N)*(M));                         \
         assert(__arr_count_null(GB) == (M) || !(opt2));             \
                                                                     \
-        value_t Gx[(N)*(K)] = __nan_array((N)*(K));                 \
-        value_t Gw[(M)*(N)] = __nan_array((M)*(N));                 \
-        value_t Gb[M] = __nan_array(M);                             \
+        grad_t Gx[(N)*(K)] = __nan_array((N)*(K));                  \
+        grad_t Gw[(M)*(N)] = __nan_array((M)*(N));                  \
+        grad_t Gb[M] = __nan_array(M);                              \
         const value_t ones[K] = __val_array(K, 1.0);                \
                                                                     \
         const dim3_t d = {(N), (M), (K)};                           \

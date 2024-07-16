@@ -14,12 +14,12 @@
         assert(__arr_count_null(GX) == (N) || !(opt));          \
         assert(__arr_count(GW) == (N)*(M));                     \
                                                                 \
-        value_t Gx[N] = __nan_array(N);                         \
-        value_t Gw[(M)*(N)] = __nan_array((M)*(N));             \
+        grad_t Gx[N] = __nan_array(N);                          \
+        grad_t Gw[(M)*(N)] = __nan_array((M)*(N));              \
                                                                 \
         const dim_t d = {(N), (M)};                             \
         const value_t *x = X;                                   \
-        const value_t *w = W;                                   \
+        const weight_t *w = W;                                  \
         const grad_t *Gy = GY;                                  \
         const grad_t *exp_Gx = GX;                              \
         const grad_t *exp_Gw = GW;                              \
