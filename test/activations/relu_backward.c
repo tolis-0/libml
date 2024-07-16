@@ -8,7 +8,7 @@
         value_t Gx[N] = __nan_array(N);             \
         const value_t exp_Gx[N] = __VA_ARGS__;      \
         relu_backward(N, X, Gy, Gx);                \
-        __exp_check(name, N, Gx, exp_Gx, 1e-50);    \
+        __exp_check_lf(name, N, Gx, 1e-50);         \
     } while (0)
 
 

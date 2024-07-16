@@ -8,7 +8,7 @@
         value_t y[N] = __nan_array(N);          \
         const value_t exp_y[N] = __VA_ARGS__;   \
         relu_forward(N, X, y);                  \
-        __exp_check(name, N, y, exp_y, 1e-50);  \
+        __exp_check_lf(name, N, y, 1e-50);      \
     } while (0)
 
 

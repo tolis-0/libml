@@ -8,7 +8,7 @@
         value_t Gx[N] = __nan_array(N);             \
         const value_t exp_Gx[N] = __VA_ARGS__;      \
         logistic_backward(N, Y, Gy, Gx);            \
-        __exp_check(name, N, Gx, exp_Gx, 1e-10);    \
+        __exp_check_lf(name, N, Gx, 1e-10);         \
     } while (0)
 
 

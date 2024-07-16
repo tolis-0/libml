@@ -10,7 +10,7 @@
         const dim3_t d = {(N), (M), (K)};                           \
         const value_t exp_y[(M)*(K)] = __VA_ARGS__;                 \
         batch_dense_forward(d, X, W, opt, B, ones,y);               \
-        __exp_check(name, (M)*(K), y, exp_y, 1e-9);                 \
+        __exp_check_lf(name, (M)*(K), y, 1e-9);                     \
     } while (0)
 
 

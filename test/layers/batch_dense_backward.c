@@ -15,11 +15,9 @@
         const weight_t *exp_Gb = exp_GW + (M)*(N);                          \
         batch_dense_backward(d, X, W, opt1, ones, Gy,                       \
             ((opt1) ? Gx : NULL), GW, opt2, ((opt2) ? Gb : NULL));          \
-        if (opt1)                                                           \
-            __exp_check(name " (Gx)", N, Gx, exp_Gx, 1e-9);                 \
-        if (opt2)                                                           \
-            __exp_check(name " (Gb)", N, Gb, exp_Gb, 1e-9);                 \
-        __exp_check(name " (GW)", (N)*(M), GW, exp_GW, 1e-9);               \
+        if (opt1) __exp_check_lf(name " (Gx)", N, Gx, 1e-9);                \
+        if (opt2) __exp_check_lf(name " (Gb)", N, Gb, 1e-9);                \
+        __exp_check_lf(name " (GW)", (N)*(M), GW, 1e-9);                    \
     } while (0)
 
 

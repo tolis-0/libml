@@ -8,7 +8,7 @@
         value_t y[N] = __nan_array(N);          \
         const value_t exp_y[N] = __VA_ARGS__;   \
         logistic_forward(N, X, y);              \
-        __exp_check(name, N, y, exp_y, 1e-10);  \
+        __exp_check_lf(name, N, y, 1e-10);      \
     } while (0)
 
 

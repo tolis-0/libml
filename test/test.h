@@ -8,8 +8,10 @@
 #define __test_failed "\e[31mFailed\e[39m"
 
 
-/*  Macro to check equality between double values */
-#define __are_equal(x, y, e) ((((x) > (y)) ? (x) - (y) : (y) - (x)) < (e))
+/*  Macros to check equality between numbers */
+#define __are_equal(type, x, y, e) (__are_equal_##type(x, y, e))
+#define __are_equal_lf(x, y, e) ((((x) > (y)) ? (x) - (y) : (y) - (x)) < (e))
+#define __are_equal_d(x, y, e) ((x) == (y))
 
 
 /*  Macros for initializing variables and arrays */
@@ -18,16 +20,27 @@
 #define __val_array(size, val) {[0 ... (size)-1] = (val)}   // single value array
 
 
-/*  Macro to compare results with expected values */
-#define __exp_check(name, n, y, exp_y, error)               \
+/*  Macros to help print different types of values */
+#define __print_lf  "%.10lf"
+#define __print_d   "%d"
+
+
+/*  Macro to compare results with expected values
+    type: is either lf (double) or d (int)
+    name: text to print that recognizes that specific test
+    n: number of elements to compare
+    y: array that gets compared with respective exp_y array
+    e: absolute error for floating-point values             */
+#define __exp_check(type, name, n, y, e)                    \
     do {                                                    \
         int i, correct = 0;                                 \
         for (i = 0; i < n; i++) {                           \
-            if (__are_equal(y[i], exp_y[i], (error))) {     \
+            if (__are_equal(type, y[i], exp_##y[i], (e))) { \
                 correct++;                                  \
             } else {                                        \
-                printf("At %d: expected %.10lf, got "       \
-                    "%.10lf\n", i, exp_y[i], y[i]);         \
+                printf("At %d: expected " __print_##type    \
+                    ", got " __print_##type "\n",           \
+                    i, exp_##y[i], y[i]);                   \
             }                                               \
         }                                                   \
         if (correct == n) {                                 \
@@ -38,6 +51,14 @@
                 correct, n);                                \
         }                                                   \
     } while (0)
+
+
+/*  Handling different types for __exp_check */
+#define __exp_check_lf(name, n, y, e) \
+    __exp_check(lf, name, n, y, e)
+#define __exp_check_d(name, n, y) \
+    __exp_check(d, name, n, y, 0)
+
 
 
 #endif // _TEST_H

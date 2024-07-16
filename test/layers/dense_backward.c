@@ -12,9 +12,8 @@
         const weight_t *exp_GW = exp_Gx + (N)*!!(opt);          \
         dense_backward(d, X, W, opt, Gy,                        \
             ((opt) ? Gx : NULL), GW);                           \
-        if (opt)                                                \
-            __exp_check(name " (Gx)", N, Gx, exp_Gx, 1e-9);     \
-        __exp_check(name " (GW)", (N)*(M), GW, exp_GW, 1e-9);   \
+        if (opt) __exp_check_lf(name " (Gx)", N, Gx, 1e-9);     \
+        __exp_check_lf(name " (GW)", (N)*(M), GW, 1e-9);        \
     } while (0)
 
 
