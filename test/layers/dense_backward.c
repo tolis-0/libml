@@ -35,7 +35,7 @@ int main ()
     __title("layers/dense_backward");
 
 
-        dense_backward_test("2x3 calcx", 2, 3,
+    dense_backward_test("2x3 calcx", 2, 3,
         ((value_t[])    {0.7, 0.8}),
         ((weight_t[])   {0.1, 0.2, 0.3, 0.4, 0.5, 0.6}),
         ((grad_t[])     {0.45, 0.55, 0.65}),
@@ -43,7 +43,7 @@ int main ()
         ((grad_t[])     {0.315, 0.36, 0.385, 0.44, 0.455, 0.52}));
 
 
-        dense_backward_test("2x3 no calcx", 2, 3,
+    dense_backward_test("2x3 no calcx", 2, 3,
         ((value_t[])    {0.7, 0.8}),
         ((weight_t[])   {0.1, 0.2, 0.3, 0.4, 0.5, 0.6}),
         ((grad_t[])     {0.45, 0.55, 0.65}),
@@ -51,7 +51,7 @@ int main ()
         ((grad_t[])     {0.315, 0.36, 0.385, 0.44, 0.455, 0.52}));
 
 
-        dense_backward_test("3x2 calcx", 3, 2,
+    dense_backward_test("3x2 calcx", 3, 2,
         ((value_t[])    {0.7, 0.8, 0.9}),
         ((weight_t[])   {0.1, 0.2, 0.3, 0.4, 0.5, 0.6}),
         ((grad_t[])     {0.35, 0.75}),
