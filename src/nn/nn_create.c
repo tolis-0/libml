@@ -3,7 +3,7 @@
 #include "../../include/nn.h"
 
 #ifndef __x86_64__
-    #include <time.h>
+#   include <time.h>
 #endif
 
 

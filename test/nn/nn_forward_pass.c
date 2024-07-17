@@ -33,7 +33,7 @@
         for (int i = 0, val_i = 0; i < l_n; i++) {          \
             const int n = nn->n_dims[i];                    \
             const value_t *o = nn->outputs[i];              \
-            memcpy(val + val_i, o, n * sizeof(weight_t));   \
+            memcpy(val + val_i, o, n * sizeof(value_t));    \
             val_i += n;                                     \
         }                                                   \
                                                             \

@@ -169,7 +169,7 @@ nn_struct_t *_nn_create(nn_spec_t *spec, const char *file, int line);
 
 
 /*  nn/nn_destroy.c declarations */
-#define nn_destroy(spec) _nn_destroy(spec, __FILE__, __LINE__)
+#define nn_destroy(nn) _nn_destroy(nn, __FILE__, __LINE__)
 void _nn_destroy(nn_struct_t *nn, const char *file, int line);
 
 

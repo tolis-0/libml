@@ -8,7 +8,7 @@
 #define __test_failed "\e[31mFailed\e[39m"
 
 
-/*  Macros for stringizing text */
+/*  Macros for stringizing code */
 #define __to_str_exp(x) __to_str(x) // allows x to expand first
 #define __to_str(x) #x
 
