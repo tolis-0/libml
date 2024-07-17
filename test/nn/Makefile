@@ -26,6 +26,9 @@ nn_create.out: nn_create.c $(NN_CREATE_SOURCES)
 nn_forward_pass.out: nn_forward_pass.c $(NN_FORWARD_PASS_SOURCES)
 	$(CC) $(CFLAGS) -o $@ $^ -lm -lopenblas
 
+nn_batch_forward_pass.out: nn_batch_forward_pass.c $(NN_FORWARD_PASS_SOURCES)
+	$(CC) $(CFLAGS) -o $@ $^ -lm -lopenblas
+
 
 clean:
 	find . -type f -executable -delete
