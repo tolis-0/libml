@@ -160,5 +160,22 @@ int main ()
     );
 
 
+    nn_create_test(
+        ((nn_spec_t[]){
+            input_layer(2),
+            dense_layer(2, b, relu),
+            dense_layer(2, b, logistic),
+            output_layer()
+        }),
+        4, 2, 2, 8, 4,
+        ((nn_ops_t[]) {DENSE_OP, RELU_OP, DENSE_OP, LOGISTIC_OP}),
+        ((int[])      {2, 2, 2, 2, 2}),
+        ((int[])      {4, 0, 4, 0}),
+        ((int[])      {2, 0, 2, 0}),
+        ((nn_reg_t[]) {NONE, NONE, NONE, NONE}),
+        ((weight_t[]) {0.0, 0.0, 0.0, 0.0})
+    );
+
+
     return 0;
 }
