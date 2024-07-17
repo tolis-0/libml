@@ -5,30 +5,16 @@
 /*  Helper function to allocate memory for testing */
 void _nn_alloc_test(nn_struct_t *nn, int batch_size)
 {
-    for (int i = 0; i < nn->n_layers; i++) {
-        nn->batch_outputs[i] = malloc(
-            nn->n_dims[i] * batch_size * sizeof(value_t));
-    }
-
-    nn->ones = malloc(batch_size * sizeof(value_t));
-    for (int i = 0; i < batch_size; i++)
-        nn->ones[i] = 1.0;
+#undef __NN_ALLOC_GRADIENTS__
+#include "source_nn_alloc_t.h"
 }
 
 
 /*  Helper function to free memory allocated for testing */
 void _nn_free_test(nn_struct_t *nn)
 {
-    for (int i = 0; i < nn->n_layers; i++) {
-        free(nn->batch_outputs[i]);
-        nn->batch_outputs[i] = NULL;
-    }
-
-    nn->batch_outputs[-1] = NULL;
-
-    free(nn->ones);
-
-    nn->ones = NULL;
+#undef __NN_FREE_GRADIENTS__
+#include "source_nn_free_t.h"
 }
 
 
