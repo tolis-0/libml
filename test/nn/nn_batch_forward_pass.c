@@ -28,10 +28,14 @@ void _nn_free_test(nn_struct_t *nn)
         const int i_v = __arr_count(VAL);                           \
         const int l_n = nn->n_layers;                               \
                                                                     \
+        int n_outputs = 0;                                          \
+        for (int i = 0; i < nn->n_layers; i++)                      \
+            n_outputs += nn->n_dims[i];                             \
+                                                                    \
         assert(__arr_count(W) == w_n);                              \
         assert(__arr_count_null(B) == b_n);                         \
         assert(__arr_count(X) == i_n * (K));                        \
-        assert(__arr_count(VAL) % (K) == 0);                        \
+        assert(__arr_count(VAL) == (K) * n_outputs);                \
                                                                     \
         const weight_t *w = W;                                      \
         const weight_t *b = B;                                      \
