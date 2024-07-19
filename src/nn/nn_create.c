@@ -54,6 +54,8 @@ void _nn_rand_weights(nn_struct_t *nn)
 
     for (i = 0; i < nn->total_weights; i++)
         nn->weights_ptr[i] = (rand() / (weight_t) rand_2) - 1.0;
+    for (i = 0; i < nn->total_biases; i++)
+        nn->biases_ptr[i]  = (rand() / (weight_t) rand_2) - 1.0;
 }
 
 
