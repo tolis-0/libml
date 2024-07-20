@@ -1,23 +1,6 @@
 #include <stdlib.h>
 #include "../../include/nn.h"
-
-
-/*  Helper function to allocate memory for training */
-void _nn_alloc_train(nn_struct_t *nn, int batch_size)
-{
-#define __NN_ALLOC_GRADIENTS__
-#include "source_nn_alloc_t.h"
-#undef __NN_ALLOC_GRADIENTS__
-}
-
-
-/*  Helper function to free memory allocated for training */
-void _nn_free_train(nn_struct_t *nn)
-{
-#define __NN_FREE_GRADIENTS__
-#include "source_nn_free_t.h"
-#undef __NN_FREE_GRADIENTS__
-}
+#include "nn_internal.h"
 
 
 /*  Trains the neural network */
@@ -28,7 +11,8 @@ void nn_train(nn_struct_t *nn, int epochs, int batch_size, int set_size,
 
     batch_num = set_size / batch_size;
 
-    _nn_alloc_train(nn, batch_size);
+    _nn_alloc_batch(nn, batch_size);
+    _nn_alloc_grad(nn);
 
     for (i = 0; i < epochs; i++) {
         for (j = 0; j < batch_num; j++) {
@@ -43,5 +27,6 @@ void nn_train(nn_struct_t *nn, int epochs, int batch_size, int set_size,
         }
     }
 
-    _nn_free_train(nn);
+    _nn_free_batch(nn);
+    _nn_free_grad(nn);
 }
