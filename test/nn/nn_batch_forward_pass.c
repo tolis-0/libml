@@ -4,32 +4,19 @@
 #include <string.h>
 #include "../test.h"
 #include "../../include/nn.h"
-
-
-void _nn_alloc_test(nn_struct_t *nn, int batch_size)
-{
-#undef __NN_ALLOC_GRADIENTS__
-#include "../../src/nn/source_nn_alloc_t.h"
-}
-
-
-void _nn_free_test(nn_struct_t *nn)
-{
-#undef __NN_FREE_GRADIENTS__
-#include "../../src/nn/source_nn_free_t.h"
-}
+#include "../../src/nn/nn_internal.h"
 
 
 #define nn_batch_forward_pass_test(name, nn, K, W, B, X, VAL)       \
     do {                                                            \
         const int w_n = nn->total_weights;                          \
-        const unsigned long b_n = nn->total_biases;                 \
+        const unsigned b_n = nn->total_biases;                      \
         const int i_n = nn->input_dims;                             \
         const int i_v = __arr_count(VAL);                           \
         const int l_n = nn->n_layers;                               \
                                                                     \
         int n_outputs = 0;                                          \
-        for (int i = 0; i < nn->n_layers; i++)                      \
+        for (int i = 0; i < l_n; i++)                               \
             n_outputs += nn->n_dims[i];                             \
                                                                     \
         assert(__arr_count(W) == w_n);                              \
@@ -47,7 +34,7 @@ void _nn_free_test(nn_struct_t *nn)
         memcpy(nn->weights_ptr, w, w_n * sizeof(weight_t));         \
         if (b_n) memcpy(nn->biases_ptr, b, b_n * sizeof(weight_t)); \
                                                                     \
-        _nn_alloc_test(nn, (K));                                    \
+        _nn_alloc_batch(nn, (K));                                   \
         nn->batch_outputs[-1] = x;                                  \
         nn_batch_forward_pass(nn, (K));                             \
                                                                     \
@@ -64,7 +51,7 @@ void _nn_free_test(nn_struct_t *nn)
                                                                     \
         assert(nn->output == nn->batch_outputs[l_n - 1]);           \
                                                                     \
-        _nn_free_test(nn);                                          \
+        _nn_free_batch(nn);                                         \
         free(val);                                                  \
     } while (0)
 
@@ -83,7 +70,7 @@ int main ()
 
     nn_struct_t *nn1 = nn_create(spec1);
 
-    nn_batch_forward_pass_test("2x2x2 rs w/ b, k=3", nn1, 3,
+    nn_batch_forward_pass_test("2:2:2 rs w/ b, k=3", nn1, 3,
         ((weight_t[])   {1.3, -0.9, -1.1, 0.4, -0.7, -1.6, 0.3, 2.0}),
         ((weight_t[])   {-0.1, 0.1, 0.25, 0.15}),
         ((value_t[])    {1.6, -0.5,
