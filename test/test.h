@@ -20,10 +20,12 @@
     ((x != NULL) ? sizeof((x)[0]) : 1)
 
 
-/*  Macros to check equality between numbers */
-#define __are_equal(type, x, y, e) (__are_equal_##type(x, y, e))
-#define __are_equal_lf(x, y, e) ((((x) > (y)) ? (x) - (y) : (y) - (x)) < (e))
-#define __are_equal_d(x, y, e) ((x) == (y))
+/*  Macro to check equality between numbers */
+#define __are_equal(x, y, e)                                    \
+    _Generic((x),                                               \
+        double: ((((x) > (y)) ? (x) - (y) : (y) - (x)) < (e)),  \
+        default: ((x) == (y))                                   \
+    )
 
 
 /*  Macros for initializing variables and arrays */
@@ -37,6 +39,7 @@
 #define __print_d   "%d"
 
 
+
 /*  Macro to compare results with expected values
     type: is either lf (double) or d (int)
     name: text to print that recognizes that specific test
@@ -45,9 +48,11 @@
     e: absolute error for floating-point values             */
 #define __exp_check(type, name, n, y, e)                    \
     do {                                                    \
-        int i, correct = 0;                                 \
-        for (i = 0; i < n; i++) {                           \
-            if (__are_equal(type, y[i], exp_##y[i], (e))) { \
+        const int _n = (int) n;                             \
+        int i, correct;                                     \
+                                                            \
+        for (i = correct = 0; i < _n; i++) {                \
+            if (__are_equal(y[i], exp_##y[i], (e))) {       \
                 correct++;                                  \
             } else {                                        \
                 printf("At %d: expected " __print_##type    \
@@ -55,12 +60,12 @@
                     i, exp_##y[i], y[i]);                   \
             }                                               \
         }                                                   \
-        if (correct == n) {                                 \
+        if (correct == _n) {                                \
             printf(name " %d/%d " __test_passed "\n",       \
-                correct, n);                                \
+                correct, _n);                               \
         } else {                                            \
             printf(name " %d/%d " __test_failed "\n",       \
-                correct, n);                                \
+                correct, _n);                               \
         }                                                   \
     } while (0)
 
@@ -69,7 +74,7 @@
 #define __exp_check_lf(name, n, y, e) \
     __exp_check(lf, name, n, y, e)
 #define __exp_check_d(name, n, y) \
-    __exp_check(d, name, n, y, 0)
+    __exp_check(d, name, n, y, 1)
 
 
 
