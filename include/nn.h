@@ -201,6 +201,7 @@ double _nn_test(nn_struct_t *nn, int test_size, value_t *x, value_t *t,
 
 /*  loss.c declarations */
 void loss_diff_grad(int d, const value_t *y, const value_t *t, value_t *grad);
+value_t loss_mse(int n, const value_t *y, const value_t *t);
 
 
 #endif // _NN_H
