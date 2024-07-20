@@ -99,6 +99,7 @@ void _nn_alloc(nn_struct_t *nn, const char *file, int line)
         so we initialize them to 0 (NULL pointers)        */
     _nn_alloc_check2(batch_outputs, value_t *, c, 1);
     nn->batch_outputs++;
+    nn->k = 0;
 }
 
 
@@ -153,8 +154,10 @@ void _nn_create_weights(nn_struct_t *nn, const char *file, int line)
 {
     int i, total_w, total_b, i_w, i_b;
 
-    for (total_w = total_b = i = 0; i < nn->n_layers; i++)
-        total_w += nn->n_weights[i], total_b += nn->n_biases[i];
+    for (total_w = total_b = i = 0; i < nn->n_layers; i++) {
+        total_w += nn->n_weights[i];
+        total_b += nn->n_biases[i];
+    }
 
     _nn_create_error(total_w <= 0, "invalid number of weights");
 
@@ -205,12 +208,45 @@ void _nn_alloc_interm(nn_struct_t *nn, const char *file, int line)
             "number of neurons: %d", nn->n_dims[i]);
     }
 
+    nn->ones_n = 16;
+    nn->ones = malloc(nn->ones_n * sizeof(value_t));
+
+    _nn_create_error(nn->ones == NULL,
+            "failed to allocate memory for the ones array");
+
+    for (i = 0; i < nn->ones_n; i++) {
+        nn->ones[i] = 1.0;
+    }
+
     nn->output = NULL;
-    nn->ones = NULL;
+}
+
+
+/*  Helper function to determine values for gradients */
+void _nn_grad_vals(nn_struct_t *nn)
+{
+    int i, max_b, max_w, max_d;
+
+    max_b = 0;
+    max_w = 0;
+    max_d = nn->input_dims;
+
+    for (i = 0; i < nn->n_layers; i++) {
+        max_b = (nn->n_biases[i] > max_b) ? nn->n_biases[i] : max_b;
+        max_w = (nn->n_weights[i] > max_w) ? nn->n_weights[i] : max_w;
+        max_d = (nn->n_dims[i] > max_d) ? nn->n_dims[i] : max_d;
+    }
+
+    nn->gw_n = max_w;
+    nn->gb_n = max_b;
+    nn->go_n = max_d;
+
     nn->g_w = NULL;
     nn->g_b = NULL;
     nn->g_out = NULL;
     nn->g_in = NULL;
+
+    nn->g_k = 0;
 }
 
 
@@ -224,6 +260,7 @@ nn_struct_t *_nn_create(nn_spec_t *spec, const char *file, int line)
     _nn_create_layers(nn, spec, file, line);
     _nn_create_weights(nn, file, line);
     _nn_alloc_interm(nn, file, line);
+    _nn_grad_vals(nn);
 
     /* Default values: */
     nn->learning_rate = 0.01;

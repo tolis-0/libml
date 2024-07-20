@@ -30,9 +30,20 @@ void _nn_destroy(nn_struct_t *nn, const char *file, int line)
     free(nn->reg_type);
     free(nn->reg_p);
 
-    for (int i = 0; i < nn->n_layers; i++) free(nn->outputs[i]);
+    for (int i = 0; i < nn->n_layers; i++) {
+        free(nn->outputs[i]);
+        if (nn->batch_outputs[i] != NULL)
+            free(nn->batch_outputs[i]);
+    }
+
     free(--nn->outputs);
     free(--nn->batch_outputs);
+    free(nn->ones);
+
+    if (nn->g_out != NULL)  free(nn->g_out);
+    if (nn->g_in != NULL)   free(nn->g_in);
+    if (nn->g_w != NULL)    free(nn->g_w);
+    if (nn->g_b != NULL)    free(nn->g_b);
 
     free(nn);
 }

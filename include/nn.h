@@ -139,12 +139,17 @@ typedef struct {
     value_t **batch_outputs;
     value_t **outputs;
     value_t *output;
+    int ones_n;
     value_t *ones;
 
     /*  Gradients for weights, biases
         and intermediate values         */
+    int g_k;
+    int gw_n;
     grad_t *g_w;
+    int gb_n;
     grad_t *g_b;
+    int go_n;
     grad_t *g_out;
     grad_t *g_in;
 } nn_struct_t;

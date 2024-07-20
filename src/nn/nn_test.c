@@ -23,6 +23,7 @@ double _nn_test(nn_struct_t *nn, int test_size, value_t *x, value_t *t,
     value_t *t_ptr, *o_ptr;
     value_t val, max;
 
+
     _nn_alloc_batch(nn, test_size);
 
     nn->batch_outputs[-1] = x;
