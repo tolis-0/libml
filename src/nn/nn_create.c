@@ -8,7 +8,7 @@
 
 
 #define _nn_create_error(cond, str, ...)                            \
-    if (cond) {                                                     \
+    if (__builtin_expect(!!(cond), 0)) {                            \
         fprintf(stderr, "\e[1;39mnn_create\e[0;39m"                 \
             " (from \e[1;39m%s:%d\e[0;39m) \e[1;31merror\e[0;39m: " \
             str "\n", file, line, ##__VA_ARGS__);                   \
