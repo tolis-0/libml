@@ -119,6 +119,7 @@ typedef struct {
     nn_ops_t *op_types;
     int *n_dims;
 
+    /*  Weights and Biases pointers */
     int total_weights;
     int *n_weights;
     weight_t *weights_ptr;
@@ -128,19 +129,24 @@ typedef struct {
     weight_t *biases_ptr;
     weight_t **biases;
 
+    /*  Regularization types and parameters */
     nn_reg_t *reg_type;
     weight_t *reg_p;
 
+    /*  Intermediate values and outputs.
+        Ones aid in computation.        */
+    int k;
+    value_t **batch_outputs;
     value_t **outputs;
     value_t *output;
-
-    /* The arrays below are allocated and freed by train */
-    value_t **batch_outputs;
     value_t *ones;
-    value_t *g_w;
-    value_t *g_b;
-    value_t *g_out;
-    value_t *g_in;
+
+    /*  Gradients for weights, biases
+        and intermediate values         */
+    grad_t *g_w;
+    grad_t *g_b;
+    grad_t *g_out;
+    grad_t *g_in;
 } nn_struct_t;
 
 
