@@ -59,21 +59,21 @@ int main ()
 
     nn_struct_t *nn1 = nn_create(spec1);
 
-    nn_forward_pass_test("2x2x2 rs w/ b, test 1", nn1,
+    nn_forward_pass_test("2:2:2 rs w/ b, test 1", nn1,
         ((weight_t[])   {0.1, -0.2, 0.3, 0.4, 0.5, -0.6, -0.7, 0.8}),
         ((weight_t[])   {-0.04, 0.07, 0.03, -0.12}),
         ((value_t[])    {1.4, -0.9}),
         ((value_t[])    {0.28, 0.13, 0.28, 0.13, 0.092, -0.212, 0.522983791, 0.4471976146})
     );
 
-    nn_forward_pass_test("2x2x2 rs w/ b, test 2", nn1,
+    nn_forward_pass_test("2:2:2 rs w/ b, test 2", nn1,
         ((weight_t[])   {1.3, -0.9, -1.1, 0.4, -0.7, -1.6, 0.3, 2.0}),
         ((weight_t[])   {-0.1, 0.1, 0.25, 0.15}),
         ((value_t[])    {1.6, -0.5}),
         ((value_t[])    {2.43, -1.86, 2.43, 0.0, -1.451, 0.879, 0.1898477127, 0.7066149537})
     );
 
-    nn_forward_pass_test("2x2x2 rs w/ b, test 3", nn1,
+    nn_forward_pass_test("2:2:2 rs w/ b, test 3", nn1,
         ((weight_t[])   {1.3, -0.9, -1.1, 0.4, -0.7, -1.6, 0.3, 2.0}),
         ((weight_t[])   {-0.1, 0.1, 0.25, 0.15}),
         ((value_t[])    {-1.0, 1.0}),
