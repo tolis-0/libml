@@ -25,5 +25,6 @@ void nn_train(nn_struct_t *nn, int epochs, int batch_size, int set_size,
         }
     }
 
+    _nn_free_batch(nn);
     _nn_free_grad(nn);
 }
