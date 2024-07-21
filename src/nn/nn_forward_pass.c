@@ -2,62 +2,68 @@
 #include "../../include/nn.h"
 
 
-/*  Does a full forward pass of the neural network with a single input */
-void nn_forward_pass(nn_struct_t *nn, value_t *input)
+/*  Does a full forward pass of the neural network
+    with a single input (in nn->outputs[-1])        */
+void nn_forward_pass(nn_struct_t *nn)
 {
-    int i;
+    const int n = nn->n_layers;
 
-    nn->outputs[-1] = input;
+    for (int i = 0; i < n; i++) {
+        const value_t *prev = nn->outputs[i-1];
+        value_t *next = nn->outputs[i];
+        int has_b = nn->n_biases[i] > 0;
 
-    for (i = 0; i < nn->n_layers; i++) {
         switch(nn->op_types[i]) {
             case NO_OP:
-                memcpy(nn->outputs[i], nn->outputs[i-1],
-                    nn->n_dims[i] * sizeof(value_t));
+                memcpy(next, prev, nn->n_dims[i] * sizeof(value_t));
                 break;
             case DENSE_OP:;
                 dim_t d = {nn->n_dims[i-1], nn->n_dims[i]};
-                dense_forward(d, nn->outputs[i-1], nn->weights[i],
-                    nn->n_biases[i] > 0, nn->biases[i], nn->outputs[i]);
+                dense_forward(d, prev, nn->weights[i],
+                    has_b, nn->biases[i], next);
                 break;
             case RELU_OP:
-                relu_forward(nn->n_dims[i], nn->outputs[i-1], nn->outputs[i]);
+                relu_forward(nn->n_dims[i], prev, next);
                 break;
             case LOGISTIC_OP:
-                logistic_forward(nn->n_dims[i], nn->outputs[i-1], nn->outputs[i]);
+                logistic_forward(nn->n_dims[i], prev, next);
                 break;
         }
     }
 
-    nn->output = nn->outputs[nn->n_layers - 1];
+    nn->output = nn->outputs[n - 1];
 }
 
 
-/*  Does a full forward pass of the neural network with a batch of inputs */
+/*  Does a full forward pass of the neural network
+    with a batch of inputs (in nn->batch_outputs[-1])   */
 void nn_batch_forward_pass(nn_struct_t *nn, int batch_size)
 {
-    for (int i = 0; i < nn->n_layers; i++) {
+    const int n = nn->n_layers;
+
+    for (int i = 0; i < n; i++) {
+        const int arr_n = batch_size * nn->n_dims[i];
+        const value_t *prev = nn->batch_outputs[i-1];
+        value_t *next = nn->batch_outputs[i];
+        int has_b = nn->n_biases[i] > 0;
+
         switch(nn->op_types[i]) {
             case NO_OP:
-                memcpy(nn->batch_outputs[i], nn->batch_outputs[i-1],
-                    batch_size * nn->n_dims[i] * sizeof(value_t));
+                memcpy(next, prev, arr_n * sizeof(value_t));
                 break;
             case DENSE_OP:;
                 dim3_t d = {nn->n_dims[i-1], nn->n_dims[i], batch_size};
-                batch_dense_forward(d, nn->batch_outputs[i-1], nn->weights[i],
-                    nn->n_biases[i] > 0, nn->biases[i], nn->ones,
-                    nn->batch_outputs[i]);
+                batch_dense_forward(d, prev, nn->weights[i],
+                    has_b, nn->biases[i], nn->ones, next);
                 break;
             case RELU_OP:
-                relu_forward(nn->n_dims[i] * batch_size,
-                    nn->batch_outputs[i-1], nn->batch_outputs[i]);
+                relu_forward(arr_n, prev, next);
                 break;
             case LOGISTIC_OP:
-                logistic_forward(nn->n_dims[i] * batch_size,
-                    nn->batch_outputs[i-1], nn->batch_outputs[i]);
+                logistic_forward(arr_n, prev, next);
                 break;
         }
     }
 
-    nn->output = nn->batch_outputs[nn->n_layers - 1];
+    nn->output = nn->batch_outputs[n - 1];
 }

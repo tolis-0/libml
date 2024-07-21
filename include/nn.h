@@ -185,7 +185,7 @@ void _nn_destroy(nn_struct_t *nn, const char *file, int line);
 
 
 /*  nn/nn_forward_pass.c declarations */
-void nn_forward_pass(nn_struct_t *nn, value_t *input);
+void nn_forward_pass(nn_struct_t *nn);
 void nn_batch_forward_pass(nn_struct_t *nn, int batch_size);
 
 
