@@ -60,6 +60,8 @@ void _nn_free_batch(nn_struct_t *nn)
     }
 
     nn->batch_outputs[-1] = NULL;
+
+    nn->k = 0;
 }
 
 
@@ -113,4 +115,6 @@ void _nn_free_grad(nn_struct_t *nn)
     nn->g_b = NULL;
     nn->g_out = NULL;
     nn->g_in = NULL;
+
+    nn->g_k = 0;
 }
