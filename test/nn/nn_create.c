@@ -20,6 +20,23 @@
         assert(nn->output_dims == (v3));                                \
         assert(nn->total_weights == (v4));                              \
         assert(nn->total_biases == (v5));                               \
+        assert(nn->k == 0);                                             \
+        assert(nn->g_k == 0);                                           \
+        assert(nn->ones_n == 16);                                       \
+                                                                        \
+        int max_w = 0, max_b = 0, max_d = nn->input_dims;               \
+        for (int i = 0; i < n; i++) {                                   \
+            const int n_w = nn->n_weights[i];                           \
+            const int n_b = nn->n_biases[i];                            \
+            const int n_d = nn->n_dims[i];                              \
+            max_w = (n_w > max_w) ? n_w : max_w;                        \
+            max_b = (n_b > max_b) ? n_b : max_b;                        \
+            max_d = (n_d > max_d) ? n_d : max_d;                        \
+        }                                                               \
+                                                                        \
+        assert(nn->gw_n == max_w);                                      \
+        assert(nn->gb_n == max_b);                                      \
+        assert(nn->go_n == max_d);                                      \
                                                                         \
         assert(__arr_count(e1) == n);                                   \
         assert(__arr_count(e2) == n + 1);                               \
@@ -39,7 +56,7 @@
         assert(nn->outputs != NULL);                                    \
         assert(nn->batch_outputs != NULL);                              \
         assert(nn->output == NULL);                                     \
-        assert(nn->ones == NULL);                                       \
+        assert(nn->ones != NULL);                                       \
         assert(nn->g_w == NULL);                                        \
         assert(nn->g_b == NULL);                                        \
         assert(nn->g_out == NULL);                                      \
