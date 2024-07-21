@@ -15,7 +15,8 @@ NN_FORWARD_PASS_SOURCES = \
 	$(DIR)/nn/nn_destroy.c \
 	$(DIR)/nn/nn_forward_pass.c \
 	$(DIR)/activations.c \
-	$(DIR)/layers.c
+	$(DIR)/layers.c \
+	$(DIR)/nn/nn_mem.c
 
 
 all: $(EXEF)

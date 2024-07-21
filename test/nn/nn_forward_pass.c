@@ -28,7 +28,8 @@
         memcpy(nn->weights_ptr, w, w_n * sizeof(weight_t)); \
         memcpy(nn->biases_ptr, b, b_n * sizeof(weight_t));  \
                                                             \
-        nn_forward_pass(nn, x);                             \
+        nn->outputs[-1] = x;                                \
+        nn_forward_pass(nn);                                \
                                                             \
         for (int i = 0, val_i = 0; i < l_n; i++) {          \
             const int n = nn->n_dims[i];                    \
