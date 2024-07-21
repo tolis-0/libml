@@ -204,6 +204,12 @@ double _nn_test(nn_struct_t *nn, int test_size, value_t *x, value_t *t,
     const char *file, int line);
 
 
+/*  nn/nn_predict.c declarations */
+void nn_predict(value_t *output, nn_struct_t *nn, const value_t *input);
+void nn_batch_predict(value_t *output, nn_struct_t *nn,
+    const value_t *input, int k);
+
+
 /*  loss.c declarations */
 void loss_diff_grad(int d, const value_t *y, const value_t *t, value_t *grad);
 value_t loss_mse(int n, const value_t *y, const value_t *t);
