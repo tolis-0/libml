@@ -1,10 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "../../include/nn.h"
-
-#ifndef __x86_64__
-#   include <time.h>
-#endif
+#include "nn_internal.h"
 
 
 #define _nn_create_error(cond, str, ...)                            \
@@ -35,28 +32,6 @@
         _nn_create_error(nn->var == NULL,                           \
             "failed to allocate memory for " #var);                 \
     } while (0)
-
-
-/*  Helper function to randomize the starting weights */
-void _nn_rand_weights(nn_struct_t *nn)
-{
-    int i, rand_2 = RAND_MAX >> 1;
-
-    #ifdef __x86_64__
-        uint32_t lo, hi;
-        __asm__ __volatile__ (
-            "rdtsc" : "=a" (lo), "=d" (hi)
-        );
-        srand(((uint64_t) hi << 32) | lo);
-    #else
-        srand(time(NULL));
-    #endif
-
-    for (i = 0; i < nn->total_weights; i++)
-        nn->weights_ptr[i] = (rand() / (weight_t) rand_2) - 1.0;
-    for (i = 0; i < nn->total_biases; i++)
-        nn->biases_ptr[i]  = (rand() / (weight_t) rand_2) - 1.0;
-}
 
 
 /*  Helper function to measure number of layers in the network
@@ -167,7 +142,9 @@ void _nn_create_weights(nn_struct_t *nn, const char *file, int line)
     nn->weights_ptr = NULL;
 
     nn->weights_ptr = malloc(total_w * sizeof(weight_t));
-    if (total_b > 0) nn->biases_ptr = calloc(total_b, sizeof(weight_t));
+    if (total_b > 0) {
+        nn->biases_ptr = calloc(total_b, sizeof(weight_t));
+    }
 
     _nn_create_error(nn->weights_ptr == NULL,
         "failed to allocate memory for weights, "
@@ -176,23 +153,17 @@ void _nn_create_weights(nn_struct_t *nn, const char *file, int line)
         "failed to allocate memory for biases, "
         "N = %d", total_b);
 
-    _nn_rand_weights(nn);
-
     for (i = i_w = i_b = 0; i < nn->n_layers; i++) {
-        if (nn->n_weights[i] == 0) {
-            nn->weights[i] = NULL;
-        } else {
-            nn->weights[i] = nn->weights_ptr + i_w;
-            i_w += nn->n_weights[i];
-        }
+        const int w_n = nn->n_weights[i];
+        const int b_n = nn->n_biases[i];
 
-        if (nn->n_biases[i] == 0) {
-            nn->biases[i] = NULL;
-        } else {
-            nn->biases[i] = nn->biases_ptr + i_b;
-            i_b += nn->n_biases[i];
-        }
+        nn->weights[i] = (w_n > 0) ? (nn->weights_ptr + i_w) : NULL;
+        nn->biases[i] = (b_n > 0) ? (nn->biases_ptr + i_b) : NULL;
+        i_w += w_n;
+        i_b += b_n;
     }
+
+    _nn_rand_weights(nn);
 }
 
 
