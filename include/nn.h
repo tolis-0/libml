@@ -210,6 +210,10 @@ void nn_batch_predict(value_t *output, nn_struct_t *nn,
     const value_t *input, int k);
 
 
+/*  nn/nn_loss.c declarations */
+value_t nn_loss(nn_struct_t *nn, int k, const value_t *x, const value_t *t);
+
+
 /*  loss.c declarations */
 void loss_diff_grad(int d, const value_t *y, const value_t *t, value_t *grad);
 value_t loss_mse(int n, const value_t *y, const value_t *t);
