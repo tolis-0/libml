@@ -2,6 +2,7 @@
 #define _LOADER_H
 
 #include <stdint.h>
+#include "core/ml_types.h"
 
 
 /*  Types in the third byte code of the magic number in mnist file format */
@@ -11,13 +12,6 @@
 #define INT_TYPE    0x0C
 #define FLOAT_TYPE  0x0D
 #define DOUBLE_TYPE 0x0E
-
-
-#ifndef _STANDARD_ML_TYPES_
-#define _STANDARD_ML_TYPES_
-typedef double weight_t, value_t, grad_t;
-typedef int dim_t[2], dim3_t[3];
-#endif // _STANDARD_ML_TYPES_
 
 
 /*  loader.c declarations */

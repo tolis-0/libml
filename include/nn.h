@@ -2,16 +2,7 @@
 #define _NN_H
 
 #include <stdint.h>
-
-
-#ifndef _STANDARD_ML_TYPES_
-#define _STANDARD_ML_TYPES_
-typedef double weight_t;    // type used for weights
-typedef double value_t;     // type used for intermediate values in the network
-typedef double grad_t;      // type used for gradients
-typedef int dim_t[2];       // dimensions of matrix (i,j)
-typedef int dim3_t[3];      // dimensions of matrix (i,j) including batch size k
-#endif // _STANDARD_ML_TYPES_
+#include "core/ml_types.h"
 
 
 /*  Macro to define activation functions for enums */
