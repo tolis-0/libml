@@ -41,7 +41,7 @@
 #if   _STD_ML_TYPE_ == _ML_TYPE_DOUBLE_
 #   define __print_lf  "%.10lf"
 #elif _STD_ML_TYPE_ == _ML_TYPE_FLOAT_
-#   define __print_lf  "%.5f"
+#   define __print_lf  "%.7f"
 #endif
 #define __print_d   "%d"
 

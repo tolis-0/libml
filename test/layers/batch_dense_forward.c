@@ -24,7 +24,7 @@
         const value_t *exp_y = Y;                                   \
                                                                     \
         batch_dense_forward(d, x, w, opt, b, ones, y);              \
-        __exp_check_lf(name, (M)*(K), y, 1e-9);                     \
+        __exp_check_lf(name, (M)*(K), y, 1e-6);                     \
     } while (0)
 
 

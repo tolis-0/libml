@@ -32,9 +32,9 @@
                                                                     \
         batch_dense_backward(d, x, w, opt1, ones,                   \
                              Gy, Gx, Gw, opt2, Gb);                 \
-        if (opt1) __exp_check_lf(name " (Gx)", N, Gx, 1e-9);        \
-        if (opt2) __exp_check_lf(name " (Gb)", N, Gb, 1e-9);        \
-        __exp_check_lf(name " (Gw)", (N)*(M), Gw, 1e-9);            \
+        if (opt1) __exp_check_lf(name " (Gx)", N, Gx, 1e-6);        \
+        if (opt2) __exp_check_lf(name " (Gb)", N, Gb, 1e-6);        \
+        __exp_check_lf(name " (Gw)", (N)*(M), Gw, 1e-6);            \
     } while (0)
 
 

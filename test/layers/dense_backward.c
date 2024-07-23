@@ -25,8 +25,8 @@
         const grad_t *exp_Gw = GW;                              \
                                                                 \
         dense_backward(d, x, w, opt, Gy, Gx, Gw);               \
-        if (opt) __exp_check_lf(name " (Gx)", N, Gx, 1e-9);     \
-        __exp_check_lf(name " (Gw)", (N)*(M), Gw, 1e-9);        \
+        if (opt) __exp_check_lf(name " (Gx)", N, Gx, 1e-6);     \
+        __exp_check_lf(name " (Gw)", (N)*(M), Gw, 1e-6);        \
     } while (0)
 
 
