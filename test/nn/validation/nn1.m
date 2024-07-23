@@ -1,4 +1,4 @@
-% nn1.m 
+% nn1.m
 
 function nn1(_w1, _b1, _w2, _b2, x, t, lr, k)
     x1     = transpose(_w1) * x + _b1
