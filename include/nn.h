@@ -209,7 +209,7 @@ void nn_train(nn_struct_t *nn, int epochs, int batch_size, int set_size,
 
 /*  nn/nn_test.c declarations */
 #define nn_test(nn, s, x, t) _nn_test(nn, s, x, t, __FILE__, __LINE__)
-double _nn_test(nn_struct_t *nn, int test_size, value_t *x, value_t *t,
+float _nn_test(nn_struct_t *nn, int test_size, value_t *x, value_t *t,
     const char *file, int line);
 
 

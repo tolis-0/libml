@@ -18,11 +18,11 @@ void nn_batch_backward_pass(nn_struct_t *nn, int batch_size)
                     nn->n_biases[i] > 0, nn->g_b);
 
                 /* TODO: MOVE TO ANOTHER FILE AND ADD REGULARIZATION */
-                cblas_daxpy(nn->n_weights[i], -nn->learning_rate,
+                cblas_axpy(nn->n_weights[i], -nn->learning_rate,
                     nn->g_w, 1, nn->weights[i], 1);
 
                 if (nn->n_biases[i] > 0) {
-                    cblas_daxpy(nn->n_biases[i], -nn->learning_rate,
+                    cblas_axpy(nn->n_biases[i], -nn->learning_rate,
                         nn->g_b, 1, nn->biases[i], 1);
                 }
                 /* .......................... */

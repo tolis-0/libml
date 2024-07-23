@@ -178,7 +178,12 @@ define_ml_convert_f(ubyte, uint8_t);
 define_ml_convert_f(sbyte, int8_t);
 define_ml_convert_f(short, short);
 define_ml_convert_f(int, int);
-define_ml_convert_f(float, float);
+
+#if   _STD_ML_TYPE_ == _ML_TYPE_DOUBLE_
+    define_ml_convert_f(float, float);
+#elif _STD_ML_TYPE_ == _ML_TYPE_FLOAT_
+    define_ml_convert_f(double, double);
+#endif
 
 
 value_t *ml_ubyte_onehot(uint8_t *data, int n, int categories)

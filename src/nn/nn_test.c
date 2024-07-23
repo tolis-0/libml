@@ -15,7 +15,7 @@
 
 
 /*  Tests the accuracy of the neural network */
-double _nn_test(nn_struct_t *nn, int test_size, value_t *x, value_t *t,
+float _nn_test(nn_struct_t *nn, int test_size, value_t *x, value_t *t,
     const char *file, int line)
 {
     const int o_n = nn->output_dims;
@@ -55,5 +55,5 @@ double _nn_test(nn_struct_t *nn, int test_size, value_t *x, value_t *t,
 
     _nn_free_batch(nn);
 
-    return correct / (double) test_size;
+    return correct / (float) test_size;
 }

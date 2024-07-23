@@ -6,14 +6,14 @@
 
 #ifdef __x86_64__
 #   include <stdint.h>
-#   define __set_seed()                     \
-    do {                                    \
-        uint32_t lo, hi;                    \
-        __asm__ __volatile__ (              \
-            "rdtsc" : "=a" (lo), "=d" (hi)  \
-        );                                  \
-        srand(((uint64_t) hi << 32) | lo);  \
-    } while (0)
+#   define __set_seed()                         \
+        do {                                    \
+            uint32_t lo, hi;                    \
+            __asm__ __volatile__ (              \
+                "rdtsc" : "=a" (lo), "=d" (hi)  \
+            );                                  \
+            srand(((uint64_t) hi << 32) | lo);  \
+        } while (0)
 #else
 #   include <time.h>
 #   define __set_seed() srand(time(NULL))
@@ -23,9 +23,9 @@
 /*  He initialization function for ReLU */
 void _he_init(weight_t *w, int n)
 {
-    const double stddev = sqrt(2.0 / n);
-    const double mult = 2.0 / (double) RAND_MAX;
-    double u, v, s;
+    const weight_t stddev = sqrt(2.0 / n);
+    const weight_t mult = 2.0 / (weight_t) RAND_MAX;
+    weight_t u, v, s;
 
     for (int i = 0; i < n; i += 2) {
         do {
@@ -45,7 +45,7 @@ void _he_init(weight_t *w, int n)
     if (n & 1) {
         const int x = rand() % (n-1);
         const int y = rand() % (n-1);
-        const double swap = (w[x] + w[y]) * inv_sqrt2;
+        const weight_t swap = (w[x] + w[y]) * inv_sqrt2;
         w[n-1] = w[x];
         w[x] = swap;
     }
@@ -54,8 +54,8 @@ void _he_init(weight_t *w, int n)
 
 void _glorot_init(weight_t *w, int n, int sum)
 {
-    const double range = sqrt(6.0 / sum);
-    const double mult = (2.0 * range) / (double) RAND_MAX;
+    const weight_t range = sqrt(6.0 / sum);
+    const weight_t mult = (2.0 * range) / (weight_t) RAND_MAX;
 
     for (int i = 0; i < n; i++) {
         w[i] = rand() * mult - range;
