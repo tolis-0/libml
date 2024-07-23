@@ -1,6 +1,8 @@
 #ifndef _TEST_H
 #define _TEST_H
 
+#include "../include/core/ml_types.h"
+
 
 /*  Helper string macros for printing test info */
 #define __title(str) puts("Testing function \e[1;39m" str "\e[0;39m:");
@@ -23,6 +25,7 @@
 /*  Macro to check equality between numbers */
 #define __are_equal(x, y, e)                                    \
     _Generic((x),                                               \
+        float:  ((((x) > (y)) ? (x) - (y) : (y) - (x)) < (e)),  \
         double: ((((x) > (y)) ? (x) - (y) : (y) - (x)) < (e)),  \
         default: ((x) == (y))                                   \
     )
@@ -35,7 +38,11 @@
 
 
 /*  Macros to help print different types of values */
-#define __print_lf  "%.10lf"
+#if   _STD_ML_TYPE_ == _ML_TYPE_DOUBLE_
+#   define __print_lf  "%.10lf"
+#elif _STD_ML_TYPE_ == _ML_TYPE_FLOAT_
+#   define __print_lf  "%.5f"
+#endif
 #define __print_d   "%d"
 
 
