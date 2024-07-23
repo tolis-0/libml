@@ -82,7 +82,8 @@ void _nn_alloc(nn_struct_t *nn, const char *file, int line)
 void _nn_create_layers(nn_struct_t *nn,
     nn_spec_t *spec, const char *file, int line)
 {
-    int i, j, dims, layer_type;
+    nn_spec_layer_t layer_type;
+    int i, j, dims;
 
     nn->input_dims = nn->n_dims[-1] = dims = spec[0].dims;
 
@@ -109,8 +110,14 @@ activation_redo:
             case RELU:
                 activation_template(RELU);
                 break;
+            case LRELU:
+                activation_template(LRELU);
+                break;
             case LOGISTIC:
                 activation_template(LOGISTIC);
+                break;
+            case TANH:
+                activation_template(TANH);
                 break;
             case INPUT:
                 _nn_create_error(1, "input layer in the middle of the network");

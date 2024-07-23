@@ -14,12 +14,19 @@ typedef int dim3_t[3];      // dimensions of matrix (i,j) including batch size k
 #endif // _STANDARD_ML_TYPES_
 
 
+/*  Macro to define activation functions for enums */
+#define ACTIVATIONS_DEF(x)  \
+    RELU##x = 100,          \
+    LRELU##x,               \
+    LOGISTIC##x,            \
+    TANH##x
+
+
 /*  Types of functions for forward/backward operations */
 typedef enum {
     NO_OP,
     DENSE_OP,
-    RELU_OP,
-    LOGISTIC_OP
+    ACTIVATIONS_DEF(_OP)
 } nn_ops_t;
 
 
@@ -28,8 +35,7 @@ typedef enum nn_spec_layer {
     OUTPUT,
     INPUT,
     DENSE,
-    RELU = 100,
-    LOGISTIC
+    ACTIVATIONS_DEF()
 } nn_spec_layer_t;
 
 
@@ -37,8 +43,7 @@ typedef enum nn_spec_layer {
     These correspond with forward and backward functions */
 typedef enum nn_layer {
     DENSE_L,
-    RELU_L,
-    LOGISTIC_L
+    ACTIVATIONS_DEF(_L)
 } nn_layer_t;
 
 
@@ -53,8 +58,7 @@ typedef enum nn_reg {
 /*  Types of activation functions */
 typedef enum nn_activ {
     LINEAR_ACTIV,
-    RELU_ACTIV = 100,
-    LOGISTIC_ACTIV
+    ACTIVATIONS_DEF(_ACTIV)
 } nn_activ_t;
 
 
@@ -65,9 +69,11 @@ typedef enum nn_activ {
 #define nn_reg_l2(p) , .reg = L2, .reg_p = (p)
 #define nn_reg_l1(p) , .reg = L1, .reg_p = (p)
 
-#define nn_activ_linear LINEAR_ACTIV
-#define nn_activ_relu RELU_ACTIV
-#define nn_activ_logistic LOGISTIC_ACTIV
+#define nn_activ_linear     LINEAR_ACTIV
+#define nn_activ_relu       RELU_ACTIV
+#define nn_activ_lrelu      LRELU_ACTIV
+#define nn_activ_logistic   LOGISTIC_ACTIV
+#define nn_activ_tanh       TANH_ACTIV
 
 
 /*  Macros that create the corresponding nn_spec_t */
@@ -92,9 +98,17 @@ typedef enum nn_activ {
         .type = RELU,                   \
         .activ = LINEAR_ACTIV           \
     }
+#define lrelu_layer() {                 \
+        .type = LRELU,                  \
+        .activ = LRELU_ACTIV            \
+    }
 #define logistic_layer() {              \
         .type = LOGISTIC,               \
         .activ = LINEAR_ACTIV           \
+    }
+#define tanh_layer() {                  \
+        .type = TANH,                   \
+        .activ = TANH_ACTIV             \
     }
 
 
@@ -172,6 +186,10 @@ void relu_forward(int d, const value_t *x, value_t *y);
 void relu_backward(int d, const value_t *x, const grad_t *g_y, grad_t *g_x);
 void logistic_forward(int d, const value_t *x, value_t *y);
 void logistic_backward(int d, const value_t *y, const grad_t *g_y, grad_t *g_x);
+void tanh_forward(int d, const value_t *x, value_t *y);
+void tanh_backward(int d, const value_t *y, const grad_t *g_y, grad_t *g_x);
+void lrelu_forward(int d, const value_t *x, value_t *y);
+void lrelu_backward(int d, const value_t *x, const grad_t *g_y, grad_t *g_x);
 
 
 /*  nn/nn_create.c declarations */

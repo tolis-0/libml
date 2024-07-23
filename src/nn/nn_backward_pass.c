@@ -31,8 +31,16 @@ void nn_batch_backward_pass(nn_struct_t *nn, int batch_size)
                 relu_backward(nn->n_dims[i] * batch_size,
                     nn->batch_outputs[i-1], nn->g_out, nn->g_in);
                 break;
+            case LRELU_OP:
+                lrelu_backward(nn->n_dims[i] * batch_size,
+                    nn->batch_outputs[i-1], nn->g_out, nn->g_in);
+                break;
             case LOGISTIC_OP:
                 logistic_backward(nn->n_dims[i] * batch_size,
+                    nn->batch_outputs[i], nn->g_out, nn->g_in);
+                break;
+            case TANH_OP:
+                tanh_backward(nn->n_dims[i] * batch_size,
                     nn->batch_outputs[i], nn->g_out, nn->g_in);
                 break;
         }

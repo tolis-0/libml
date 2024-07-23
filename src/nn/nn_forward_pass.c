@@ -25,8 +25,14 @@ void nn_forward_pass(nn_struct_t *nn)
             case RELU_OP:
                 relu_forward(nn->n_dims[i], prev, next);
                 break;
+            case LRELU_OP:
+                lrelu_forward(nn->n_dims[i], prev, next);
+                break;
             case LOGISTIC_OP:
                 logistic_forward(nn->n_dims[i], prev, next);
+                break;
+            case TANH_OP:
+                tanh_forward(nn->n_dims[i], prev, next);
                 break;
         }
     }
@@ -59,8 +65,14 @@ void nn_batch_forward_pass(nn_struct_t *nn, int batch_size)
             case RELU_OP:
                 relu_forward(arr_n, prev, next);
                 break;
+            case LRELU_OP:
+                lrelu_forward(arr_n, prev, next);
+                break;
             case LOGISTIC_OP:
                 logistic_forward(arr_n, prev, next);
+                break;
+            case TANH_OP:
+                tanh_forward(arr_n, prev, next);
                 break;
         }
     }
