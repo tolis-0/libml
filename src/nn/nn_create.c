@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include <stdio.h>
 #include "../../include/nn.h"
 #include "nn_internal.h"
@@ -148,9 +149,10 @@ void _nn_create_weights(nn_struct_t *nn, const char *file, int line)
     nn->biases_ptr = NULL;
     nn->weights_ptr = NULL;
 
-    nn->weights_ptr = malloc(total_w * sizeof(weight_t));
+    nn->weights_ptr = malloc((total_w + total_b) * sizeof(weight_t));
     if (total_b > 0) {
-        nn->biases_ptr = calloc(total_b, sizeof(weight_t));
+        nn->biases_ptr = nn->weights_ptr + total_w;
+        memset(nn->biases_ptr, 0, total_b * sizeof(char));
     }
 
     _nn_create_error(nn->weights_ptr == NULL,

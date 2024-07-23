@@ -24,7 +24,6 @@ void _nn_destroy(nn_struct_t *nn, const char *file, int line)
     free(nn->n_biases);
     free(nn->weights_ptr);
     free(nn->weights);
-    free(nn->biases_ptr);
     free(nn->biases);
 
     free(nn->reg_type);
