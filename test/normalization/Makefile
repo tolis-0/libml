@@ -14,4 +14,11 @@ all: $(EXEF)
 clean:
 	find . -type f -executable -delete
 
-.PHONY: clean all
+run: $(EXEF)
+	@for test in $(EXEF); do \
+		./$$test; \
+		echo "\n"; \
+	done
+	@echo "Done"
+
+.PHONY: all clean run
