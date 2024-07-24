@@ -34,7 +34,7 @@
         memcpy(nn->weights_ptr, w, w_n * sizeof(weight_t));         \
         if (b_n) memcpy(nn->biases_ptr, b, b_n * sizeof(weight_t)); \
                                                                     \
-        _nn_alloc_batch(nn, (K));                                   \
+        _nn_alloc_batch(nn, (K), __func__, __FILE__, __LINE__);     \
         nn->batch_outputs[-1] = x;                                  \
         nn_batch_forward_pass(nn, (K));                             \
                                                                     \
