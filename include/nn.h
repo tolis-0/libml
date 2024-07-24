@@ -161,31 +161,30 @@ typedef struct {
 
 
 /*  layers.c declarations */
-void dense_forward(const dim_t d, const value_t *x, const weight_t *W,
-    int has_bias, const weight_t *b, value_t *y);
-void dense_backward(const dim_t d, const value_t *x, const weight_t *W,
-    int calc_x, const grad_t *Gy, grad_t *Gx, grad_t *GW);
-void batch_dense_forward(const dim3_t d, const value_t *x, const weight_t *W,
-    int has_bias, const weight_t *b, const value_t *ones, value_t *y);
-void batch_dense_backward(const dim3_t d, const value_t *x, const weight_t *W,
-    int calc_x, const value_t *ones, const grad_t *Gy, grad_t *Gx, grad_t *GW,
-    int has_bias, grad_t *Gb);
+void dense_forward(cdim_t d, cvrp_t x, cwrp_t w,
+    int hb, cwrp_t b, vrp_t y);
+void dense_backward(cdim_t d, cvrp_t x, cwrp_t w,
+    int cx, cgrp_t Gy, grp_t Gx, grp_t Gw);
+void batch_dense_forward(cdim3_t d, cvrp_t x, cwrp_t w,
+    int hb, cwrp_t b, cvrp_t ones, vrp_t y);
+void batch_dense_backward(cdim3_t d, cvrp_t x, cwrp_t w,
+    int cx, cvrp_t ones, cgrp_t Gy, grp_t Gx, grp_t Gw, int hb, grp_t Gb);
 
 
 /*  activations.c declarations */
-void relu_forward(int d, const value_t *x, value_t *y);
-void relu_backward(int d, const value_t *x, const grad_t *g_y, grad_t *g_x);
-void lrelu_forward(int d, const value_t *x, value_t *y);
-void lrelu_backward(int d, const value_t *x, const grad_t *g_y, grad_t *g_x);
-void logistic_forward(int d, const value_t *x, value_t *y);
-void logistic_backward(int d, const value_t *y, const grad_t *g_y, grad_t *g_x);
-void tanh_forward(int d, const value_t *x, value_t *y);
-void tanh_backward(int d, const value_t *y, const grad_t *g_y, grad_t *g_x);
+void relu_forward(int d, cvrp_t x, vrp_t y);
+void relu_backward(int d, cvrp_t x, cgrp_t g_y, grp_t g_x);
+void lrelu_forward(int d, cvrp_t x, vrp_t y);
+void lrelu_backward(int d, cvrp_t x, cgrp_t g_y, grp_t g_x);
+void logistic_forward(int d, cvrp_t x, vrp_t y);
+void logistic_backward(int d, cvrp_t y, cgrp_t g_y, grp_t g_x);
+void tanh_forward(int d, cvrp_t x, vrp_t y);
+void tanh_backward(int d, cvrp_t y, cgrp_t g_y, grp_t g_x);
 
 
 /*  loss.c declarations */
-void loss_diff_grad(int d, const value_t *y, const value_t *t, value_t *grad);
-value_t loss_mse(int n, const value_t *y, const value_t *t);
+void loss_diff_grad(int d, cvrp_t y, cvrp_t t, vrp_t grad);
+value_t loss_mse(int n, cvrp_t y, cvrp_t t);
 
 
 /*  Macros for nn/ functions */
