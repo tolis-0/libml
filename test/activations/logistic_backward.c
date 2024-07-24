@@ -4,20 +4,20 @@
 #include "../../include/nn.h"
 
 
-#define logistic_backward_test(name, N, X, GY, GX)  \
+#define logistic_backward_test(name, N, Y, GY, GX)  \
     do {                                            \
         assert((N) > 0);                            \
-        assert(__arr_count(X) == (N));              \
+        assert(__arr_count(Y) == (N));              \
         assert(__arr_count(GY) == (N));             \
         assert(__arr_count(GX) == (N));             \
                                                     \
         value_t Gx[N] = __nan_array(N);             \
                                                     \
-        const value_t *x = X;                       \
+        const value_t *y = Y;                       \
         const grad_t *Gy = GY;                      \
         const grad_t *exp_Gx = GX;                  \
                                                     \
-        logistic_backward(N, x, Gy, Gx);            \
+        logistic_backward(N, y, Gy, Gx);            \
         __exp_check_lf(name, N, Gx, 1e-6);          \
     } while (0)
 

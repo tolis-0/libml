@@ -20,7 +20,8 @@
     } while (0)
 
 
-int main() {
+int main()
+{
     __title("activations/logistic_forward");
 
 
