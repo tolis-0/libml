@@ -10,7 +10,7 @@
         fprintf(stderr, "\e[1;39mnn_test\e[0;39m"                   \
             " (from \e[1;39m%s:%d\e[0;39m) \e[1;31merror\e[0;39m: " \
             str "\n", file, line, ##__VA_ARGS__);                   \
-        exit(1);                                                    \
+        exit(EXIT_FAILURE);                                         \
     }
 
 

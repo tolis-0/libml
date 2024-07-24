@@ -8,7 +8,7 @@
         fprintf(stderr, "\e[1;39m" name "\e[0;39m"  \
             " \e[1;31merror\e[0;39m: "              \
             str "\n", ##__VA_ARGS__);               \
-        exit(1);                                    \
+        exit(EXIT_FAILURE);                         \
     }
 
 

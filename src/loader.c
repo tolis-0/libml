@@ -5,7 +5,7 @@
 
 #define __print_error   "\e[1;31merror\e[0;39m"
 #define __print_warning "\e[1;35mwarning\e[0;39m"
-#define __action_error  exit(1)
+#define __action_error  exit(EXIT_FAILURE)
 #define __action_warning
 
 #define _mnist_load_alloc_error(type, cond, str, ...)               \
