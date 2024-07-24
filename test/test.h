@@ -32,9 +32,11 @@
 
 
 /*  Macros for initializing variables and arrays */
-#define __nan_val __builtin_nan("")                         // invalid number
-#define __nan_array(size) {[0 ... (size)-1] = __nan_val}    // output array
-#define __val_array(size, val) {[0 ... (size)-1] = (val)}   // single value array
+#define __nan_val __builtin_nan("") // invalid number
+#define __nan_array(size)       \
+    {[0 ... (size)-1] = __nan_val}  // placeholder for output array
+#define __val_array(size, val)  \
+    {[0 ... (size)-1] = (val)}      // uniform array
 
 
 /*  Macros to help print different types of values */
@@ -48,7 +50,7 @@
 
 
 /*  Macro to compare results with expected values
-    type: is either lf (double) or d (int)
+    type: is either lf (float/double) or d (int)
     name: text to print that recognizes that specific test
     n: number of elements to compare
     y: array that gets compared with respective exp_y array
