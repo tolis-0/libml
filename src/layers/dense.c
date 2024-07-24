@@ -1,5 +1,5 @@
 #include <cblas.h>
-#include "../include/nn.h"
+#include "../../include/nn.h"
 
 
 /*  Computes the result y of a single forward pass in the dense layer */
@@ -24,7 +24,8 @@ void dense_forward(cdim_t d, cvrp_t x, cwrp_t w,
 void dense_backward(cdim_t d, cvrp_t x, cwrp_t w,
     int cx, cgrp_t Gy, grp_t Gx, grp_t Gw)
 {
-    int d0 = d[0], d1 = d[1], i, j, k = 0;
+    const int d0 = d[0], d1 = d[1];
+    int i, j, k = 0;
 
     /* Gw = x * Gy^T    | (d0,d1) = (d0,1) * (d1,1)^T */
     for (j = 0; j < d1; j++)
@@ -43,7 +44,7 @@ void dense_backward(cdim_t d, cvrp_t x, cwrp_t w,
 void batch_dense_forward(cdim3_t d, cvrp_t x, cwrp_t w,
     int hb, cwrp_t b, cvrp_t ones, vrp_t y)
 {
-    int d0 = d[0], d1 = d[1], k = d[2]; // k is batch size
+    const int d0 = d[0], d1 = d[1], k = d[2]; // k is batch size
 
     /* y = W^T * x      | (d1,k) = (d0,d1)^T * (d0,k) */
     cblas_gemm(CblasColMajor, CblasTrans, CblasNoTrans,
@@ -59,7 +60,7 @@ void batch_dense_forward(cdim3_t d, cvrp_t x, cwrp_t w,
 void batch_dense_backward(cdim3_t d, cvrp_t x, cwrp_t w,
     int cx, cvrp_t ones, cgrp_t Gy, grp_t Gx, grp_t Gw, int hb, grp_t Gb)
 {
-    int d0 = d[0], d1 = d[1], k = d[2];
+    const int d0 = d[0], d1 = d[1], k = d[2];
 
     /* Gw = 1/k * x * Gy^T  | (d0,d1) = (d0,k) * (d1,k)^T */
     cblas_gemm(CblasColMajor, CblasNoTrans, CblasTrans,

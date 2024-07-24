@@ -4,7 +4,7 @@ LIBFLAGS = -lopenblas
 
 SOURCEF = $(wildcard *.c)
 EXEF = $(patsubst %.c, %.out, $(SOURCEF))
-TESTF = ../../src/layers.c
+TESTF = ../../src/layers/dense.c
 
 all: $(EXEF)
 

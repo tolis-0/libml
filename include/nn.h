@@ -160,7 +160,7 @@ typedef struct {
 } nn_struct_t;
 
 
-/*  layers.c declarations */
+/*  layers/dense.c declarations */
 void dense_forward(cdim_t d, cvrp_t x, cwrp_t w,
     int hb, cwrp_t b, vrp_t y);
 void dense_backward(cdim_t d, cvrp_t x, cwrp_t w,
