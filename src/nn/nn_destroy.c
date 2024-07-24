@@ -23,6 +23,7 @@ void _nn_destroy(nn_struct_t *nn, const char *file, int line)
     free(nn->n_weights);
     free(nn->n_biases);
     free(nn->weights_ptr);
+    free(nn->gw_ptr);
     free(nn->weights);
     free(nn->biases);
 
@@ -41,8 +42,8 @@ void _nn_destroy(nn_struct_t *nn, const char *file, int line)
 
     if (nn->g_out != NULL)  free(nn->g_out);
     if (nn->g_in != NULL)   free(nn->g_in);
-    if (nn->g_w != NULL)    free(nn->g_w);
-    if (nn->g_b != NULL)    free(nn->g_b);
+    free(nn->gw);
+    free(nn->gb);
 
     free(nn);
 }

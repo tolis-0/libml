@@ -64,6 +64,9 @@ void _nn_alloc(nn_struct_t *nn, const char *file, int line)
     _nn_alloc_check(weights, weight_t *);
     _nn_alloc_check(biases, weight_t *);
 
+    _nn_alloc_check(gw, grad_t *);
+    _nn_alloc_check(gb, grad_t *);
+
     _nn_alloc_check(reg_type, nn_reg_t);
     _nn_alloc_check(reg_p, weight_t);
 
@@ -157,10 +160,7 @@ void _nn_create_weights(nn_struct_t *nn, const char *file, int line)
 
     _nn_create_error(nn->weights_ptr == NULL,
         "failed to allocate memory for weights, "
-        "N = %d", total_w);
-    _nn_create_error(total_b > 0 && nn->biases_ptr == NULL,
-        "failed to allocate memory for biases, "
-        "N = %d", total_b);
+        "N = %d", (total_w + total_b));
 
     for (i = i_w = i_b = 0; i < nn->n_layers; i++) {
         const int w_n = nn->n_weights[i];
@@ -203,30 +203,44 @@ void _nn_alloc_interm(nn_struct_t *nn, const char *file, int line)
 
 
 /*  Helper function to determine values for gradients */
-void _nn_grad_vals(nn_struct_t *nn)
+void _nn_grad_vals(nn_struct_t *nn, const char *file, int line)
 {
-    int i, max_b, max_w, max_d;
+    int i, max_d, i_w, i_b;
+    const int total_w = nn->total_weights;
+    const int total_b = nn->total_biases;
 
-    max_b = 0;
-    max_w = 0;
     max_d = nn->input_dims;
 
     for (i = 0; i < nn->n_layers; i++) {
-        max_b = (nn->n_biases[i] > max_b) ? nn->n_biases[i] : max_b;
-        max_w = (nn->n_weights[i] > max_w) ? nn->n_weights[i] : max_w;
         max_d = (nn->n_dims[i] > max_d) ? nn->n_dims[i] : max_d;
     }
 
-    nn->gw_n = max_w;
-    nn->gb_n = max_b;
+    nn->g_k = 0;
     nn->go_n = max_d;
 
-    nn->g_w = NULL;
-    nn->g_b = NULL;
+    nn->gw_ptr = NULL;
+    nn->gb_ptr = NULL;
     nn->g_out = NULL;
     nn->g_in = NULL;
 
-    nn->g_k = 0;
+    nn->gw_ptr = malloc((total_w + total_b) * sizeof(weight_t));
+    if (total_b > 0) {
+        nn->gb_ptr = nn->gw_ptr + total_w;
+    }
+
+    _nn_create_error(nn->gw_ptr == NULL,
+        "failed to allocate memory for gw, "
+        "N = %d", (total_w + total_b));
+
+    for (i = i_w = i_b = 0; i < nn->n_layers; i++) {
+        const int w_n = nn->n_weights[i];
+        const int b_n = nn->n_biases[i];
+
+        nn->gw[i] = (w_n > 0) ? (nn->gw_ptr + i_w) : NULL;
+        nn->gb[i] = (b_n > 0) ? (nn->gb_ptr + i_b) : NULL;
+        i_w += w_n;
+        i_b += b_n;
+    }
 }
 
 
@@ -240,7 +254,7 @@ nn_struct_t *_nn_create(nn_spec_t *spec, const char *file, int line)
     _nn_create_layers(nn, spec, file, line);
     _nn_create_weights(nn, file, line);
     _nn_alloc_interm(nn, file, line);
-    _nn_grad_vals(nn);
+    _nn_grad_vals(nn, file, line);
 
     /* Default values: */
     nn->learning_rate = 0.01;

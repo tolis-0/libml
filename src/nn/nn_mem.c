@@ -77,12 +77,6 @@ void _nn_alloc_grad(nn_struct_t *nn, int batch_size,
     const int gi_s = batch_size * nn->go_n * sizeof(value_t);
 
     if (nn->g_k == 0) {
-        nn->g_w = malloc(nn->gw_n * sizeof(weight_t));
-        _nn_malloc_error(nn->g_w);
-
-        nn->g_b = malloc(nn->gb_n * sizeof(weight_t));
-        _nn_malloc_error(nn->g_b);
-
         nn->g_out = malloc(gi_s);
         _nn_malloc_error(nn->g_out);
 
@@ -108,13 +102,9 @@ void _nn_alloc_grad(nn_struct_t *nn, int batch_size,
 /*  Free memory from gradients */
 void _nn_free_grad(nn_struct_t *nn)
 {
-    free(nn->g_w);
-    free(nn->g_b);
     free(nn->g_in);
     free(nn->g_out);
 
-    nn->g_w = NULL;
-    nn->g_b = NULL;
     nn->g_out = NULL;
     nn->g_in = NULL;
 

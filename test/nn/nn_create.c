@@ -21,21 +21,14 @@
         assert(nn->total_weights == (v4));                              \
         assert(nn->total_biases == (v5));                               \
         assert(nn->k == 0);                                             \
-        assert(nn->g_k == 0);                                           \
         assert(nn->ones_n == 16);                                       \
                                                                         \
-        int max_w = 0, max_b = 0, max_d = nn->input_dims;               \
+        int max_d = nn->input_dims;                                     \
         for (int i = 0; i < n; i++) {                                   \
-            const int n_w = nn->n_weights[i];                           \
-            const int n_b = nn->n_biases[i];                            \
             const int n_d = nn->n_dims[i];                              \
-            max_w = (n_w > max_w) ? n_w : max_w;                        \
-            max_b = (n_b > max_b) ? n_b : max_b;                        \
             max_d = (n_d > max_d) ? n_d : max_d;                        \
         }                                                               \
                                                                         \
-        assert(nn->gw_n == max_w);                                      \
-        assert(nn->gb_n == max_b);                                      \
         assert(nn->go_n == max_d);                                      \
                                                                         \
         assert(__arr_count(e1) == n);                                   \
@@ -57,8 +50,10 @@
         assert(nn->batch_outputs != NULL);                              \
         assert(nn->output == NULL);                                     \
         assert(nn->ones != NULL);                                       \
-        assert(nn->g_w == NULL);                                        \
-        assert(nn->g_b == NULL);                                        \
+        assert(nn->gw_ptr != NULL);                                     \
+        assert(nn->gw  != NULL);                                        \
+        assert(nn->gb_ptr != NULL || nn->total_biases == 0);            \
+        assert(nn->gb  != NULL);                                        \
         assert(nn->g_out == NULL);                                      \
         assert(nn->g_in == NULL);                                       \
                                                                         \
@@ -85,14 +80,30 @@
         __exp_check_lf("reg_p      ", n, reg_p, 1e-50);                 \
                                                                         \
         weight_t *w_p = nn->weights_ptr, *b_p = nn->biases_ptr;         \
+        grad_t *gw_p = nn->gw_ptr, *gb_p = nn->gb_ptr;                  \
+                                                                        \
         for (int i = 0; i < n; i++) {                                   \
             assert(nn->outputs[i] != NULL);                             \
             assert(nn->batch_outputs[i] == NULL);                       \
-            if (nn->n_weights[i] == 0) assert(nn->weights[i] == NULL);  \
-            else assert(nn->weights[i] == w_p);                         \
-            if (nn->n_biases[i] == 0) assert(nn->biases[i] == NULL);    \
-            else assert(nn->biases[i] == b_p);                          \
+                                                                        \
+            if (nn->n_weights[i] == 0) {                                \
+                assert(nn->weights[i] == NULL);                         \
+                assert(nn->gw[i] == NULL);                              \
+            } else {                                                    \
+                assert(nn->weights[i] == w_p);                          \
+                assert(nn->gw[i] == gw_p);                              \
+            }                                                           \
+                                                                        \
+            if (nn->n_biases[i] == 0) {                                 \
+                assert(nn->biases[i] == NULL);                          \
+                assert(nn->gb[i] == NULL);                              \
+            } else {                                                    \
+                assert(nn->biases[i] == b_p);                           \
+                assert(nn->gb[i] == gb_p);                              \
+            }                                                           \
+                                                                        \
             w_p += nn->n_weights[i], b_p += nn->n_biases[i];            \
+            gw_p += nn->n_weights[i], gb_p += nn->n_biases[i];          \
         }                                                               \
         nn_destroy(nn);                                                 \
     } while (0)

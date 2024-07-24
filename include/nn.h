@@ -149,11 +149,11 @@ typedef struct {
 
     /*  Gradients for weights, biases
         and intermediate values         */
+    grad_t *gw_ptr;
+    grad_t **gw;
+    grad_t *gb_ptr;
+    grad_t **gb;
     int g_k;
-    int gw_n;
-    grad_t *g_w;
-    int gb_n;
-    grad_t *g_b;
     int go_n;
     grad_t *g_out;
     grad_t *g_in;
