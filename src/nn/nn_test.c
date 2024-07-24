@@ -24,7 +24,7 @@ float _nn_test(nn_struct_t *nn, int test_size, value_t *x, value_t *t,
     value_t val, max;
 
 
-    _nn_alloc_batch(nn, test_size);
+    _nn_alloc_batch(nn, test_size, "nn_test", file, line);
 
     nn->batch_outputs[-1] = x;
     nn_batch_forward_pass(nn, test_size);

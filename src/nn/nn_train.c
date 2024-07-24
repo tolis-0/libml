@@ -4,15 +4,15 @@
 
 
 /*  Trains the neural network */
-void nn_train(nn_struct_t *nn, int epochs, int batch_size, int set_size,
-    value_t *x, value_t *t)
+void _nn_train(nn_struct_t *nn, int epochs, int batch_size, int set_size,
+    value_t *x, value_t *t, const char *file, int line)
 {
     int i, j, batch_num;
 
     batch_num = set_size / batch_size;
 
-    _nn_alloc_batch(nn, batch_size);
-    _nn_alloc_grad(nn, batch_size);
+    _nn_alloc_batch(nn, batch_size, "nn_train", file, line);
+    _nn_alloc_grad(nn, batch_size, "nn_train", file, line);
 
     for (i = 0; i < epochs; i++) {
         for (j = 0; j < batch_num; j++) {

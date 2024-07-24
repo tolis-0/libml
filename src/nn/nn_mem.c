@@ -1,19 +1,27 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <errno.h>
 #include "../../include/nn.h"
 
 
-#define _nn_alloc_error(name, var, str, ...)        \
-    if (__builtin_expect(((var) == NULL), 0)) {     \
-        fprintf(stderr, "\e[1;39m" name "\e[0;39m"  \
-            " \e[1;31merror\e[0;39m: "              \
-            str "\n", ##__VA_ARGS__);               \
-        exit(EXIT_FAILURE);                         \
+#define _nn_malloc_error(var) _nn_alloc_error(m, var)
+#define _nn_realloc_error(var) _nn_alloc_error(re, var)
+
+#define _nn_alloc_error(m, var)                                     \
+    if (__builtin_expect(((var) == NULL), 0)) {                     \
+        fprintf(stderr, "\e[1;39m%s\e[0;39m"                        \
+            " (from \e[1;39m%s:%d\e[0;39m) \e[1;31merror\e[0;39m:"  \
+            " " #m "alloc failed for " #var ", %s\n",               \
+            func, file, line, strerror(errno)                       \
+        );                                                          \
+        exit(EXIT_FAILURE);                                         \
     }
 
 
 /*  Allocates memory for the batch intermediate values and outputs */
-void _nn_alloc_batch(nn_struct_t *nn, int batch_size)
+void _nn_alloc_batch(nn_struct_t *nn, int batch_size,
+    const char *func, const char *file, int line)
 {
     const int bsize = batch_size * sizeof(value_t);
     int i;
@@ -21,8 +29,7 @@ void _nn_alloc_batch(nn_struct_t *nn, int batch_size)
     if (nn->k == 0) {
         for (i = 0; i < nn->n_layers; i++) {
             nn->batch_outputs[i] = malloc(nn->n_dims[i] * bsize);
-            _nn_alloc_error("_nn_alloc_batch", nn->batch_outputs[i],
-                "malloc failed for batch outputs");
+            _nn_malloc_error(nn->batch_outputs[i]);
         }
 
         nn->k = batch_size;
@@ -31,8 +38,7 @@ void _nn_alloc_batch(nn_struct_t *nn, int batch_size)
             free(nn->batch_outputs[i]);
 
             nn->batch_outputs[i] = malloc(nn->n_dims[i] * bsize);
-            _nn_alloc_error("_nn_alloc_batch", nn->batch_outputs[i],
-                "malloc failed for batch outputs");
+            _nn_malloc_error(nn->batch_outputs[i]);
         }
 
         nn->k = batch_size;
@@ -40,8 +46,7 @@ void _nn_alloc_batch(nn_struct_t *nn, int batch_size)
 
     if (batch_size > nn->ones_n) {
         nn->ones = realloc(nn->ones, bsize);
-        _nn_alloc_error("_nn_alloc_batch", nn->ones,
-                "realloc failed for the ones array");
+        _nn_realloc_error(nn->ones);
 
         for (i = nn->ones_n; i < batch_size; i++)
             nn->ones[i] = 1.0;
@@ -66,24 +71,23 @@ void _nn_free_batch(nn_struct_t *nn)
 
 
 /*  Allocate memory for gradients */
-void _nn_alloc_grad(nn_struct_t *nn, int batch_size)
+void _nn_alloc_grad(nn_struct_t *nn, int batch_size,
+    const char *func, const char *file, int line)
 {
     const int gi_s = batch_size * nn->go_n * sizeof(value_t);
 
     if (nn->g_k == 0) {
         nn->g_w = malloc(nn->gw_n * sizeof(weight_t));
-        nn->g_b = malloc(nn->gb_n * sizeof(weight_t));
-        nn->g_out = malloc(gi_s);
-        nn->g_in = malloc(gi_s);
+        _nn_malloc_error(nn->g_w);
 
-        _nn_alloc_error("_nn_alloc_grad", nn->g_w,
-                "malloc failed for weight gradients");
-        _nn_alloc_error("_nn_alloc_grad", nn->g_b,
-                "malloc failed for weight gradients");
-        _nn_alloc_error("_nn_alloc_grad", nn->g_out,
-                "malloc failed for intermediate gradients");
-        _nn_alloc_error("_nn_alloc_grad", nn->g_in,
-                "malloc failed for intermediate gradients");
+        nn->g_b = malloc(nn->gb_n * sizeof(weight_t));
+        _nn_malloc_error(nn->g_b);
+
+        nn->g_out = malloc(gi_s);
+        _nn_malloc_error(nn->g_out);
+
+        nn->g_in = malloc(gi_s);
+        _nn_malloc_error(nn->g_in);
 
         nn->g_k = batch_size;
     } else if (batch_size > nn->g_k) {
@@ -91,12 +95,10 @@ void _nn_alloc_grad(nn_struct_t *nn, int batch_size)
         free(nn->g_in);
 
         nn->g_out = malloc(gi_s);
-        nn->g_in = malloc(gi_s);
+        _nn_malloc_error(nn->g_out);
 
-        _nn_alloc_error("_nn_alloc_grad", nn->g_out,
-                "malloc failed for intermediate gradients");
-        _nn_alloc_error("_nn_alloc_grad", nn->g_in,
-                "malloc failed for intermediate gradients");
+        nn->g_in = malloc(gi_s);
+        _nn_malloc_error(nn->g_in);
 
         nn->g_k = batch_size;
     }

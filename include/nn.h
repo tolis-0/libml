@@ -175,57 +175,50 @@ void batch_dense_backward(const dim3_t d, const value_t *x, const weight_t *W,
 /*  activations.c declarations */
 void relu_forward(int d, const value_t *x, value_t *y);
 void relu_backward(int d, const value_t *x, const grad_t *g_y, grad_t *g_x);
+void lrelu_forward(int d, const value_t *x, value_t *y);
+void lrelu_backward(int d, const value_t *x, const grad_t *g_y, grad_t *g_x);
 void logistic_forward(int d, const value_t *x, value_t *y);
 void logistic_backward(int d, const value_t *y, const grad_t *g_y, grad_t *g_x);
 void tanh_forward(int d, const value_t *x, value_t *y);
 void tanh_backward(int d, const value_t *y, const grad_t *g_y, grad_t *g_x);
-void lrelu_forward(int d, const value_t *x, value_t *y);
-void lrelu_backward(int d, const value_t *x, const grad_t *g_y, grad_t *g_x);
-
-
-/*  nn/nn_create.c declarations */
-#define nn_create(spec) _nn_create(spec, __FILE__, __LINE__)
-nn_struct_t *_nn_create(nn_spec_t *spec, const char *file, int line);
-
-
-/*  nn/nn_destroy.c declarations */
-#define nn_destroy(nn) _nn_destroy(nn, __FILE__, __LINE__)
-void _nn_destroy(nn_struct_t *nn, const char *file, int line);
-
-
-/*  nn/nn_forward_pass.c declarations */
-void nn_forward_pass(nn_struct_t *nn);
-void nn_batch_forward_pass(nn_struct_t *nn, int batch_size);
-
-
-/*  nn/nn_backward_pass.c declarations */
-void nn_batch_backward_pass(nn_struct_t *nn, int batch_size);
-
-
-/*  nn/nn_train.c declarations */
-void nn_train(nn_struct_t *nn, int epochs, int batch_size, int set_size,
-    value_t *x, value_t *t);
-
-
-/*  nn/nn_test.c declarations */
-#define nn_test(nn, s, x, t) _nn_test(nn, s, x, t, __FILE__, __LINE__)
-float _nn_test(nn_struct_t *nn, int test_size, value_t *x, value_t *t,
-    const char *file, int line);
-
-
-/*  nn/nn_predict.c declarations */
-void nn_predict(value_t *output, nn_struct_t *nn, const value_t *input);
-void nn_batch_predict(value_t *output, nn_struct_t *nn,
-    const value_t *input, int k);
-
-
-/*  nn/nn_loss.c declarations */
-value_t nn_loss(nn_struct_t *nn, int k, const value_t *x, const value_t *t);
 
 
 /*  loss.c declarations */
 void loss_diff_grad(int d, const value_t *y, const value_t *t, value_t *grad);
 value_t loss_mse(int n, const value_t *y, const value_t *t);
+
+
+/*  Macros for nn/ functions */
+#define nn_create(spec) _nn_create  (spec, __FILE__, __LINE__)
+#define nn_destroy(nn) _nn_destroy(nn, __FILE__, __LINE__)
+#define nn_train(nn, e, b, s, x, t) _nn_train(nn, e, b, s, x, t, __FILE__, __LINE__)
+#define nn_test(nn, s, x, t) _nn_test(nn, s, x, t, __FILE__, __LINE__)
+#define nn_predict(o, nn, x) _nn_predict(o, nn, x, __FILE__, __LINE__)
+// TODO: remove
+#define nn_batch_predict(o, nn, x, k) \
+    nn_batch_predict(o, nn, x, k, __FILE__, __LINE__)
+#define nn_loss(nn, k, x, t) _nn_loss(nn, k, x, t, __FILE__, __LINE__)
+
+
+/*  nn/ declarations */
+nn_struct_t *_nn_create(nn_spec_t *spec, const char *file, int line);
+void _nn_destroy(nn_struct_t *nn, const char *file, int line);
+void _nn_train(nn_struct_t *nn, int epochs, int batch_size, int set_size,
+    value_t *x, value_t *t, const char *file, int line);
+float _nn_test(nn_struct_t *nn, int test_size, value_t *x, value_t *t,
+    const char *file, int line);
+void _nn_predict(value_t *output, nn_struct_t *nn, const value_t *input,
+    const char *file, int line);
+// TODO: merge with _nn_predict
+void _nn_batch_predict(value_t *output, nn_struct_t *nn,
+    const value_t *input, int k, const char *file, int line);
+value_t _nn_loss(nn_struct_t *nn, int k, const value_t *x, const value_t *t,
+    const char *file, int line);
+
+// TODO: move to internal
+void nn_forward_pass(nn_struct_t *nn);
+void nn_batch_forward_pass(nn_struct_t *nn, int batch_size);
+void nn_batch_backward_pass(nn_struct_t *nn, int batch_size);
 
 
 #endif // _NN_H
