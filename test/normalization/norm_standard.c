@@ -22,7 +22,7 @@
 
 int main ()
 {
-    __title("normalization/standard_scaler");
+    __title("normalization/norm_standard");
 
 
     norm_standard_test("5x4 example", 5, 4,
