@@ -23,7 +23,7 @@
 /*  He initialization function for ReLU */
 void _he_init(weight_t *w, int n)
 {
-    const weight_t stddev = sqrt(2.0 / n);
+    const weight_t stddev = _sqrt(2.0 / n);
     const weight_t mult = 2.0 / (weight_t) RAND_MAX;
     weight_t u, v, s;
 
@@ -34,7 +34,7 @@ void _he_init(weight_t *w, int n)
             s = u * u + v * v;
         } while (s >= 1.0 || s == 0.0);
 
-        s = sqrt(-2.0 * log(s) / s);
+        s = _sqrt(-2.0 * _log(s) / s);
 
         w[i]   = u * s * stddev;
         w[i+1] = v * s * stddev;
@@ -54,7 +54,7 @@ void _he_init(weight_t *w, int n)
 
 void _glorot_init(weight_t *w, int n, int sum)
 {
-    const weight_t range = sqrt(6.0 / sum);
+    const weight_t range = _sqrt(6.0 / sum);
     const weight_t mult = (2.0 * range) / (weight_t) RAND_MAX;
 
     for (int i = 0; i < n; i++) {

@@ -68,11 +68,7 @@ void norm_standard(value_t *data, int n, int m)
     /* Calculating the inverse of standard deviation for each feature */
     for (i = 0; i < m; i++) {
         value_t norm = cblas_nrm2(n, data + i, m);
-        if (norm == 0.0) {
-            deviation[i] = 1.0;
-        } else {
-            deviation[i] = sqrt(n) / norm;
-        }
+        deviation[i] = (norm == 0.0) ? 1.0 : _sqrt(n) / norm;
     }
 
     /* Scale each row of the matrix by the corresponding deviation */

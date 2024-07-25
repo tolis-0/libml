@@ -14,9 +14,11 @@
 #if   _STD_ML_TYPE_ == _ML_TYPE_DOUBLE_
 #   define  STD_ML_TYPE         double
 #   define  __cblas_func(x)     cblas_d##x
+#   define  __math_func(x)      x
 #elif _STD_ML_TYPE_ == _ML_TYPE_FLOAT_
 #   define  STD_ML_TYPE         float
 #   define  __cblas_func(x)     cblas_s##x
+#   define  __math_func(x)      x##f
 #else
 #   error "Standard type must be either float or double"
 #endif
@@ -52,6 +54,13 @@ typedef const dim3_t    cdim3_t;
 #define cblas_gemv  __cblas_func(gemv)
 #define cblas_ger   __cblas_func(ger)
 #define cblas_gemm  __cblas_func(gemm)
+
+
+/*  Define math functions corresponding to the standard type */
+#define _sqrt       __math_func(sqrt)
+#define _exp        __math_func(exp)
+#define _log        __math_func(log)
+#define _tanh       __math_func(tanh)
 
 
 #endif // _ML_TYPES

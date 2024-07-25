@@ -35,7 +35,7 @@ void lrelu_backward(int d, cvrp_t x, cgrp_t g_y, grp_t g_x)
 void logistic_forward(int d, cvrp_t x, vrp_t y)
 {
     for (int i = 0; i < d; i++)
-        y[i] = 1.0 / (1.0 + exp(-x[i]));
+        y[i] = 1.0 / (1.0 + _exp(-x[i]));
 }
 
 void logistic_backward(int d, cvrp_t y, cgrp_t g_y, grp_t g_x)
@@ -49,7 +49,7 @@ void logistic_backward(int d, cvrp_t y, cgrp_t g_y, grp_t g_x)
 void tanh_forward(int d, cvrp_t x, vrp_t y)
 {
     for (int i = 0; i < d; i++)
-        y[i] = tanh(x[i]);
+        y[i] = _tanh(x[i]);
 }
 
 void tanh_backward(int d, cvrp_t y, cgrp_t g_y, grp_t g_x)
