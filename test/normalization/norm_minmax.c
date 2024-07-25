@@ -22,7 +22,7 @@
 
 int main ()
 {
-    __title("activations/relu_forward");
+    __title("normalization/norm_minmx");
 
 
     norm_minmax_test("5x4 example", 5, 4,
@@ -41,13 +41,13 @@ int main ()
     norm_minmax_test("2x3 simple example", 2, 3,
         ((value_t[])    {1.0, 4.0, 5.0,
                          3.0, 2.0, 5.0}),
-        ((value_t[])    {0.0, 1.0, 0.5,
-                         1.0, 0.0, 0.5}));
+        ((value_t[])    {0.0, 1.0, 0.0,
+                         1.0, 0.0, 0.0}));
 
 
     norm_minmax_test("1x4 negative values", 1, 4,
         ((value_t[])    {-1.0, -2.0, -3.0, -4.0}),
-        ((value_t[])    {0.5,   0.5,  0.5,  0.5}));
+        ((value_t[])    {0.0,   0.0,  0.0,  0.0}));
 
 
     norm_minmax_test("4x1 negative values", 4, 1,
@@ -59,9 +59,9 @@ int main ()
         ((value_t[])    {5.0, 5.0, 5.0,
                          5.0, 5.0, 5.0,
                          5.0, 5.0, 5.0}),
-        ((value_t[])    {0.5, 0.5, 0.5,
-                         0.5, 0.5, 0.5,
-                         0.5, 0.5, 0.5}));
+        ((value_t[])    {0.0, 0.0, 0.0,
+                         0.0, 0.0, 0.0,
+                         0.0, 0.0, 0.0}));
 
 
     norm_minmax_test("4x4 large range", 4, 4,
