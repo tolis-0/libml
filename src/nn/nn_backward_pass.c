@@ -1,4 +1,3 @@
-#include <cblas.h>
 #include "../../include/nn.h"
 
 
@@ -16,16 +15,6 @@ void nn_batch_backward_pass(nn_struct_t *nn, int batch_size)
                 batch_dense_backward(d, nn->batch_outputs[i-1], nn->weights[i],
                     i != 0, nn->ones, nn->g_out, nn->g_in, nn->gw[i],
                     nn->n_biases[i] > 0, nn->gb[i]);
-
-                /* TODO: MOVE TO ANOTHER FILE AND ADD REGULARIZATION */
-                cblas_axpy(nn->n_weights[i], -nn->learning_rate,
-                    nn->gw[i], 1, nn->weights[i], 1);
-
-                if (nn->n_biases[i] > 0) {
-                    cblas_axpy(nn->n_biases[i], -nn->learning_rate,
-                        nn->gb[i], 1, nn->biases[i], 1);
-                }
-                /* .......................... */
                 break;
             case RELU_OP:
                 relu_backward(nn->n_dims[i] * batch_size,

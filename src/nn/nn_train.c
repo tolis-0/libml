@@ -7,9 +7,11 @@
 void _nn_train(nn_struct_t *nn, int epochs, int batch_size, int set_size,
     value_t *x, value_t *t, const char *file, int line)
 {
-    int i, j, batch_num;
+    int i, j;
 
-    batch_num = set_size / batch_size;
+    const int batch_num = set_size / batch_size;
+    const int go_s = batch_size * nn->output_dims;
+    const int gw_s = nn->total_weights + nn->total_biases;
 
     _nn_alloc_batch(nn, batch_size, "nn_train", file, line);
     _nn_alloc_grad(nn, batch_size, "nn_train", file, line);
@@ -19,9 +21,9 @@ void _nn_train(nn_struct_t *nn, int epochs, int batch_size, int set_size,
             nn->batch_outputs[-1] = x + batch_size * j;
 
             nn_batch_forward_pass(nn, batch_size);
-            loss_diff_grad(batch_size * nn->output_dims,
-                nn->output, t, nn->g_out);
+            loss_diff_grad(go_s, nn->output, t, nn->g_out);
             nn_batch_backward_pass(nn, batch_size);
+            opt_sgd(gw_s, nn->learning_rate, nn->gw_ptr, nn->weights_ptr);
         }
     }
 

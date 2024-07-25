@@ -187,6 +187,10 @@ void loss_diff_grad(int d, cvrp_t y, cvrp_t t, vrp_t grad);
 value_t loss_mse(int n, cvrp_t y, cvrp_t t);
 
 
+/*  optimizers.c declarations */
+void opt_sgd(int n, weight_t lr, cgrp_t grad, wrp_t w);
+
+
 /*  Macros for nn/ functions */
 #define nn_create(spec) _nn_create  (spec, __FILE__, __LINE__)
 #define nn_destroy(nn) _nn_destroy(nn, __FILE__, __LINE__)
