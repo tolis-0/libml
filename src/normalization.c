@@ -7,39 +7,46 @@
 
 /*  Appies Min-max feature scaling to data
     n: number of items
-    m: item size                            */
+    m: item size
+    data is a (m, n) column major matrix   */
 void norm_minmax(value_t *data, int n, int m)
 {
-    value_t *min, *max;
-    const int item_size = m * sizeof(value_t);
-    int i, j;
+    const int mem_size = (n + 2 * m) * sizeof(value_t);
+    void *const mem_block = malloc(mem_size);
 
-    min = malloc(item_size);
-    max = malloc(item_size);
+    value_t *restrict const min  = mem_block;
+    value_t *restrict const max  = min + m;
+    value_t *restrict const ones = max + m;
+    value_t *restrict dptr = data;
 
-    memcpy(max, data, item_size);
-    memcpy(min, data, item_size);
+    for (int i = 0; i < n; i++) ones[i] = 1.0;
 
-    for (i = 0; i < m; i++) {
-        for (j = m + i; j < n*m; j += m) {
-            min[i] = (data[j] < min[i]) ? data[j] : min[i];
-            max[i] = (data[j] > max[i]) ? data[j] : max[i];
-        }
-        max[i] -= min[i];
+    memcpy(min, dptr, m * sizeof(value_t));
+    memcpy(max, dptr, m * sizeof(value_t));
+
+
+    for (int i = 0, j = 0; i < m * n; j++, i++) {
+        const value_t val = dptr[i];
+        j = (j == m) ? 0 : j;
+        min[j] = (val < min[j]) ? val : min[j];
+        max[j] = (val > max[j]) ? val : max[j];
     }
 
-    for (i = 0; i < m; i++) {
-        if (max[i] == 0) {
-            for (j = i; j < n*m; j += m)
-                data[j] = 0.5;
-            continue;
-        }
-        for (j = i; j < n*m; j += m)
-            data[j] = (data[j] - min[i]) / max[i];
+
+    /*  do max = 1/(max - min) */
+    for (int j = 0; j < m; j++) {
+        max[j] -= min[j];
+        max[j] = (max[j] != 0.0) ? (1.0 / max[j]) : max[j];
     }
 
-    free(min);
-    free(max);
+    cblas_ger(CblasColMajor, m, n, -1.0, min, 1, ones, 1, dptr, m);
+
+    for (int i = 0, j = 0; i < m * n; j++, i++) {
+        j = (j == m) ? 0 : j;
+        dptr[i] *= max[j];
+    }
+
+    free(mem_block);
 }
 
 
