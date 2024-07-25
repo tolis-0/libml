@@ -196,10 +196,7 @@ void opt_sgd(int n, weight_t lr, cgrp_t grad, wrp_t w);
 #define nn_destroy(nn) _nn_destroy(nn, __FILE__, __LINE__)
 #define nn_train(nn, e, b, s, x, t) _nn_train(nn, e, b, s, x, t, __FILE__, __LINE__)
 #define nn_test(nn, s, x, t) _nn_test(nn, s, x, t, __FILE__, __LINE__)
-#define nn_predict(o, nn, x) _nn_predict(o, nn, x, __FILE__, __LINE__)
-// TODO: remove
-#define nn_batch_predict(o, nn, x, k) \
-    nn_batch_predict(o, nn, x, k, __FILE__, __LINE__)
+#define nn_predict(nn, k, x, o) _nn_predict(nn, k, x, o, __FILE__, __LINE__)
 #define nn_loss(nn, k, x, t) _nn_loss(nn, k, x, t, __FILE__, __LINE__)
 
 
@@ -210,13 +207,11 @@ void _nn_train(nn_struct_t *nn, int epochs, int batch_size, int set_size,
     value_t *x, value_t *t, const char *file, int line);
 float _nn_test(nn_struct_t *nn, int test_size, value_t *x, value_t *t,
     const char *file, int line);
-void _nn_predict(value_t *output, nn_struct_t *nn, const value_t *input,
+void _nn_predict(nn_struct_t *nn, int k, const value_t *input, value_t *output,
     const char *file, int line);
-// TODO: merge with _nn_predict
-void _nn_batch_predict(value_t *output, nn_struct_t *nn,
-    const value_t *input, int k, const char *file, int line);
 value_t _nn_loss(nn_struct_t *nn, int k, const value_t *x, const value_t *t,
     const char *file, int line);
+
 
 // TODO: move to internal
 void nn_forward_pass(nn_struct_t *nn);
