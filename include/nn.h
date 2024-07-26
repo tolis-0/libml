@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include "core/ml_types.h"
+#include "opt.h"
 
 
 /*  Macro to define activation functions for enums */
@@ -119,10 +120,14 @@ typedef struct {
     int n_layers;
     int input_dims;
     int output_dims;
-    weight_t learning_rate;
-
     nn_ops_t *op_types;
     int *n_dims;
+
+    /*  Model general tunable parameters */
+    weight_t learning_rate;
+    int stochastic;
+    ml_opt_t opt;
+
 
     /*  Weights and Biases pointers */
     int total_weights;
@@ -185,10 +190,6 @@ void tanh_backward(int d, cvrp_t y, cgrp_t g_y, grp_t g_x);
 /*  loss.c declarations */
 void loss_diff_grad(int d, cvrp_t y, cvrp_t t, vrp_t grad);
 value_t loss_mse(int n, cvrp_t y, cvrp_t t);
-
-
-/*  optimizers.c declarations */
-void opt_sgd(int n, weight_t lr, cgrp_t grad, wrp_t w);
 
 
 /*  Macros for nn/ functions */

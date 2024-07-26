@@ -257,7 +257,9 @@ nn_struct_t *_nn_create(nn_spec_t *spec, const char *file, int line)
     _nn_grad_vals(nn, file, line);
 
     /* Default values: */
-    nn->learning_rate = 0.01;
+    nn->learning_rate   = 0.01;
+    nn->stochastic      = 1;
+    nn->opt             = opt_create.gd();
 
     return nn;
 }
