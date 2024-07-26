@@ -27,17 +27,17 @@ void _he_init(weight_t *w, int n)
     const weight_t mult = 2.0 / (weight_t) RAND_MAX;
     weight_t u, v, s;
 
-    for (int i = 0; i < n; i += 2) {
+    for (int i = 1; i < n; i += 2) {
         do {
             u = rand() * mult - 1.0;
             v = rand() * mult - 1.0;
             s = u * u + v * v;
         } while (s >= 1.0 || s == 0.0);
 
-        s = _sqrt(-2.0 * _log(s) / s);
+        s = _sqrt(-2.0 * _log(s) / s) * stddev;
 
-        w[i]   = u * s * stddev;
-        w[i+1] = v * s * stddev;
+        w[i]   = u * s;
+        w[i-1] = v * s;
     }
 
     /*  In case n is odd, the previous loop did not
