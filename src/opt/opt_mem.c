@@ -3,6 +3,7 @@
 #include <string.h>
 #include <errno.h>
 #include "../../include/nn.h"
+#include "opt_internal.h"
 
 
 #define _opt_malloc_error(var)                                      \
@@ -24,6 +25,7 @@ void _opt_alloc_val(nn_struct_t *nn,
     const int items = nn->total_weights + nn->total_biases;
 
     if (opt->mem_alloc) return;
+    _opt_free_val(2, nn->addr_keeper); // addresses at indexes 0-1
 
     switch (opt->type) {
         case GD_OPT:
@@ -31,6 +33,7 @@ void _opt_alloc_val(nn_struct_t *nn,
         case CM_OPT:
             opt->params.cm.v = calloc(items, sizeof(grad_t));
             _opt_malloc_error(opt->params.cm.v);
+            nn->addr_keeper[0] = opt->params.cm.v;
             break;
         case NAG_OPT:
             // TODO
@@ -44,26 +47,13 @@ void _opt_alloc_val(nn_struct_t *nn,
 }
 
 
-/*  Free memory from oiptimizer values and gradients */
-void _opt_free_val(nn_struct_t *nn)
+/*  Free memory from previous optimizer values and gradients */
+void _opt_free_val(int n, void **opt_addr)
 {
-    ml_opt_t *const opt = &(nn->opt);
-
-    if (!opt->mem_alloc) return;
-
-    switch (opt->type) {
-        case GD_OPT:
-            break;
-        case CM_OPT:
-            free(opt->params.cm.v);
-            break;
-        case NAG_OPT:
-            // TODO
-            break;
-        default:
-            // TODO
-            break;
+    for (int i = 0; i < n; i++) {
+        if (opt_addr[i] != NULL) {
+            free(opt_addr[i]);
+            opt_addr[i] = NULL;
+        }
     }
-
-    opt->mem_alloc = 0;
 }

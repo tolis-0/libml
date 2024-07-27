@@ -4,6 +4,8 @@
 #include "../opt/opt_internal.h"
 
 
+#define _nn_cond_free(var) if (var != NULL) free(var)
+
 #define _nn_destroy_error(cond, str, ...)                           \
     if (__builtin_expect(!!(cond), 0)) {                            \
         fprintf(stderr, "\e[1;39mnn_destroy\e[0;39m"                \
@@ -33,20 +35,21 @@ void _nn_destroy(nn_struct_t *nn, const char *file, int line)
 
     for (int i = 0; i < nn->n_layers; i++) {
         free(nn->outputs[i]);
-        if (nn->batch_outputs[i] != NULL)
-            free(nn->batch_outputs[i]);
+        _nn_cond_free(nn->batch_outputs[i]);
     }
 
     free(--nn->outputs);
     free(--nn->batch_outputs);
     free(nn->ones);
 
-    if (nn->g_out != NULL)  free(nn->g_out);
-    if (nn->g_in != NULL)   free(nn->g_in);
+    _nn_cond_free(nn->g_out);
+    _nn_cond_free(nn->g_in);
     free(nn->gw);
     free(nn->gb);
 
-    _opt_free_val(nn);
+    for (int i = 0; i < NN_ADDRK_SIZE; i++) {
+        _nn_cond_free(nn->addr_keeper[i]);
+    }
 
     free(nn);
 }

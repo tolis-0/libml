@@ -249,6 +249,8 @@ nn_struct_t *_nn_create(nn_spec_t *spec, const char *file, int line)
 {
     nn_struct_t *nn = malloc(sizeof(nn_struct_t));
 
+    _nn_create_error(nn == NULL, "failed to allocate memory for nn struct");
+
     _nn_measure_layers(nn, spec, file, line);
     _nn_alloc(nn, file, line);
     _nn_create_layers(nn, spec, file, line);
@@ -256,11 +258,13 @@ nn_struct_t *_nn_create(nn_spec_t *spec, const char *file, int line)
     _nn_alloc_interm(nn, file, line);
     _nn_grad_vals(nn, file, line);
 
+    for (int i = 0; i < NN_ADDRK_SIZE; i++) {
+        nn->addr_keeper[i] = NULL;
+    }
+
     /*  Default values: */
     nn->learning_rate   = 0.01;
     nn->stochastic      = 1;
-    /*  Default optimizer should not allocate memory
-        because it will be overwritten by the user with opt_create */
     nn->opt             = opt_create.gd();
 
     return nn;

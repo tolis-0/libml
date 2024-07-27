@@ -162,6 +162,11 @@ typedef struct {
     int go_n;
     grad_t *g_out;
     grad_t *g_in;
+
+    /*  Manage memory outside of the struct
+        0-1: store the addresses of optimizer arrays */
+#   define NN_ADDRK_SIZE 2
+    void *addr_keeper[NN_ADDRK_SIZE];
 } nn_struct_t;
 
 
