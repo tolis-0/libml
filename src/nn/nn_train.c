@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include "../../include/nn.h"
 #include "nn_internal.h"
+#include "../opt/opt_internal.h"
 
 
 /*  Trains the neural network */
@@ -14,6 +15,7 @@ void _nn_train(nn_struct_t *nn, int epochs, int batch_size, int set_size,
     const int gw_s = nn->total_weights + nn->total_biases;
     const int r = !!nn->stochastic;
 
+    _opt_alloc_val(nn, "nn_train", file, line);
     _nn_alloc_batch(nn, batch_size, "nn_train", file, line);
     _nn_alloc_grad(nn, batch_size, "nn_train", file, line);
 

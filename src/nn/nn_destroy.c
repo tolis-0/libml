@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "../../include/nn.h"
+#include "../opt/opt_internal.h"
 
 
 #define _nn_destroy_error(cond, str, ...)                           \
@@ -44,6 +45,8 @@ void _nn_destroy(nn_struct_t *nn, const char *file, int line)
     if (nn->g_in != NULL)   free(nn->g_in);
     free(nn->gw);
     free(nn->gb);
+
+    _opt_free_val(nn);
 
     free(nn);
 }

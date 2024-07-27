@@ -256,9 +256,11 @@ nn_struct_t *_nn_create(nn_spec_t *spec, const char *file, int line)
     _nn_alloc_interm(nn, file, line);
     _nn_grad_vals(nn, file, line);
 
-    /* Default values: */
+    /*  Default values: */
     nn->learning_rate   = 0.01;
     nn->stochastic      = 1;
+    /*  Default optimizer should not allocate memory
+        because it will be overwritten by the user with opt_create */
     nn->opt             = opt_create.gd();
 
     return nn;

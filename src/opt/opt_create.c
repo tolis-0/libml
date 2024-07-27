@@ -14,7 +14,8 @@ ml_opt_t opt_create_gd()
 {
     const ml_opt_t opt = {
         .call = opt_apply_gd,
-        .type = GD_OPT
+        .type = GD_OPT,
+        .mem_alloc = 0
     };
 
     return opt;
@@ -28,7 +29,8 @@ ml_opt_t opt_create_cm(weight_t beta)
     const ml_opt_t opt = {
         .call = opt_apply_cm,
         .type = CM_OPT,
-        .params = u
+        .params = u,
+        .mem_alloc = 0
     };
 
     return opt;
@@ -42,7 +44,8 @@ ml_opt_t opt_create_nag(weight_t beta)
     const ml_opt_t opt = {
         .call = opt_apply_nag,
         .type = NAG_OPT,
-        .params = u
+        .params = u,
+        .mem_alloc = 0
     };
 
     return opt;

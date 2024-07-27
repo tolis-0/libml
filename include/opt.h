@@ -16,15 +16,15 @@ typedef enum {
 /*  Struct for Classical Momentum optimizer */
 typedef struct {
     value_t     beta;
-    weight_t   *v;
+    grad_t     *v;
 } opt_cm_t;
 
 
 /*  Struct for Nesterov Accelerated Gradient optimizer */
 typedef struct {
     value_t     beta;
-    weight_t   *v;
-    weight_t   *gwv;
+    grad_t     *v;
+    grad_t     *gwv;
 } opt_nag_t;
 
 
@@ -44,6 +44,7 @@ typedef struct {
     opt_func_t  call;
     enum_opt_t  type;
     opt_t       params;
+    int         mem_alloc;
 } ml_opt_t;
 
 
