@@ -58,8 +58,8 @@ int main ()
 
     nn_train(mlp, 500, 1000, TRAIN_SIZE, data, labels);
 
-    const float train_accuracy = nn_test(mlp, TRAIN_SIZE, data, labels);
-    const float test_accuracy = nn_test(mlp, TEST_SIZE, test_data, test_labels);
+    const float train_accuracy = nn_accuracy(mlp, TRAIN_SIZE, data, labels);
+    const float test_accuracy = nn_accuracy(mlp, TEST_SIZE, test_data, test_labels);
     const double train_loss = nn_loss(mlp, TRAIN_SIZE, data, labels);
     const double test_loss = nn_loss(mlp, TEST_SIZE, test_data, test_labels);
     printf("\nTrain Accuracy: %.2f%%\n", train_accuracy * 100.0);

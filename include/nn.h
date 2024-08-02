@@ -201,7 +201,7 @@ value_t loss_mse(int n, cvrp_t y, cvrp_t t);
 #define nn_create(spec) _nn_create  (spec, __FILE__, __LINE__)
 #define nn_destroy(nn) _nn_destroy(nn, __FILE__, __LINE__)
 #define nn_train(nn, e, b, s, x, t) _nn_train(nn, e, b, s, x, t, __FILE__, __LINE__)
-#define nn_test(nn, s, x, t) _nn_test(nn, s, x, t, __FILE__, __LINE__)
+#define nn_accuracy(nn, s, x, t) _nn_accuracy(nn, s, x, t, __FILE__, __LINE__)
 #define nn_predict(nn, k, x, o) _nn_predict(nn, k, x, o, __FILE__, __LINE__)
 #define nn_loss(nn, k, x, t) _nn_loss(nn, k, x, t, __FILE__, __LINE__)
 
@@ -211,7 +211,7 @@ nn_struct_t *_nn_create(nn_spec_t *spec, const char *file, int line);
 void _nn_destroy(nn_struct_t *nn, const char *file, int line);
 void _nn_train(nn_struct_t *nn, int epochs, int batch_size, int set_size,
     value_t *x, value_t *t, const char *file, int line);
-float _nn_test(nn_struct_t *nn, int test_size, value_t *x, value_t *t,
+float _nn_accuracy(nn_struct_t *nn, int size, value_t *x, value_t *t,
     const char *file, int line);
 void _nn_predict(nn_struct_t *nn, int k, const value_t *input, value_t *output,
     const char *file, int line);
