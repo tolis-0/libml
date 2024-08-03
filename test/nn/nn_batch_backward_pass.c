@@ -8,27 +8,27 @@
 
 
 #define nn_batch_backward_pass_test(name, nn, K, W, B, X,           \
-                                    VAL, T, oG, uW, uB)             \
+                                    VAL, T, gO, gW, gB)             \
     do {                                                            \
         const int w_n = nn->total_weights;                          \
         const unsigned b_n = nn->total_biases;                      \
         const int i_n = nn->input_dims;                             \
         const int i_v = __arr_count(VAL);                           \
         const int l_n = nn->n_layers;                               \
-        const int o_n = nn->output_dims;                            \
+        const int o_n = nn->output_dims * (K);                      \
                                                                     \
         int n_outputs = 0;                                          \
         for (int i = 0; i < l_n; i++)                               \
             n_outputs += nn->n_dims[i];                             \
                                                                     \
         assert(__arr_count(W) == w_n);                              \
-        assert(__arr_count(uW) == w_n);                             \
+        assert(__arr_count(gW) == w_n);                             \
         assert(__arr_count_null(B) == b_n);                         \
-        assert(__arr_count_null(uB) == b_n);                        \
+        assert(__arr_count_null(gB) == b_n);                        \
         assert(__arr_count(X) == i_n * (K));                        \
         assert(__arr_count(VAL) == (K) * n_outputs);                \
-        assert(__arr_count(oG) == (K) * o_n);                       \
-        assert(__arr_count(T) == (K) * o_n);                        \
+        assert(__arr_count(gO) == o_n);                             \
+        assert(__arr_count(T) == o_n);                              \
                                                                     \
         const weight_t *w = W;                                      \
         const weight_t *b = B;                                      \
@@ -36,9 +36,9 @@
         const value_t *exp_val = VAL;                               \
         value_t *val = malloc(i_v * sizeof(value_t));               \
         const value_t *t = T;                                       \
-        const grad_t *exp_og = oG;                                  \
-        const weight_t *exp_uw = uW;                                \
-        const weight_t *exp_ub = uB;                                \
+        const grad_t *exp_go = gO;                                  \
+        const weight_t *exp_gw = gW;                                \
+        const weight_t *exp_gb = gB;                                \
                                                                     \
         /*  Set the custom weights and biases */                    \
         memcpy(nn->weights_ptr, w, w_n * sizeof(weight_t));         \
@@ -62,17 +62,17 @@
                                                                     \
         assert(nn->output == nn->batch_outputs[l_n - 1]);           \
                                                                     \
-        loss_diff_grad((K) * o_n, nn->output, t, nn->g_out);        \
+        loss_diff_grad(o_n, nn->output, t, nn->g_out);              \
                                                                     \
-        const grad_t *og = nn->g_out;                               \
-        __exp_check_lf(name " (g_out)", (K) * o_n, og, 1e-6);       \
+        const grad_t *go = nn->g_out;                               \
+        __exp_check_lf(name " (output gradients)", o_n, go, 1e-6);  \
                                                                     \
         nn_batch_backward_pass(nn, (K));                            \
                                                                     \
-        const weight_t *uw = nn->weights_ptr;                       \
-        const weight_t *ub = nn->biases_ptr;                        \
-        __exp_check_lf(name " (updated weights)", w_n, uw, 1e-6);   \
-        __exp_check_lf(name " (updated biases)", b_n, ub, 1e-6);    \
+        const grad_t *gw = nn->gw_ptr;                              \
+        const grad_t *gb = nn->gb_ptr;                              \
+        __exp_check_lf(name " (weight gradients)", w_n, gw, 1e-6);  \
+        __exp_check_lf(name " (bias gradients)", b_n, gb, 1e-6);    \
                                                                     \
         _nn_free_batch(nn);                                         \
         _nn_free_grad(nn);                                          \
@@ -93,7 +93,6 @@ int main ()
     };
 
     nn_struct_t *nn1 = nn_create(spec1);
-    nn1->learning_rate = 0.03;
 
     /*  Computed with testgrad1.m */
     nn_batch_backward_pass_test("2:2:2 rs w/ b, k=3 test 1", nn1, 3,
@@ -111,9 +110,9 @@ int main ()
         ((grad_t[])     {-0.8101522873, 0.7066149537,
                          0.0902981447, -0.0338951642,
                          -0.4707833213, 0.5515660021}),
-        ((weight_t[])   {1.2972861025, -0.8998362794, -1.1001408786, 0.4001408786,
-                         -0.6967492175, -1.6001186798, 0.2961811215, 2.0000177590}),
-        ((weight_t[])   {-0.1025420394, 0.1001408786, 0.252344824, 0.147181965})
+        ((grad_t[])     {0.0904632488, -0.0054573536, 0.0046959529, -0.0046959529,
+                        -0.1083594171, 0.0039559925, 0.1272959506, -0.0005919683}),
+        ((grad_t[])     {0.0847346460, -0.0046959529, -0.0781608007, 0.0939344824})
     );
 
     /*  Computed with testgrad2.m */
@@ -132,9 +131,9 @@ int main ()
         ((grad_t[])     {-0.5024999792, 0.5024999792,
                          -0.5024999792, 0.5024999792,
                          0.2119749118, -0.2073486154}),
-        ((weight_t[])   {-0.4699543024, -0.2300730168, -0.5907420593, 0.4111856816,
-                         0.3299296785, -0.6008076706, 0.2700676805, 0.5607773378}),
-        ((weight_t[])   {0.009975164366, -0.009596706923, -0.007841649091, 0.007828351079})
+        ((grad_t[])     {-0.0015232522, 0.0024338921,  0.0247353087, -0.0395227215,
+                          0.0023440504, 0.0269223522, -0.0022560176, -0.0259112600}),
+        ((grad_t[])     {0.0008278544, -0.0134431025, -0.0719450303, 0.0723882974})
     );
 
     nn_destroy(nn1);
@@ -178,9 +177,9 @@ int main ()
                          -1.005115055,  0.001816698,
                          -0.478856886, -0.440640874,
                          -1.010199746,  0.008354305}),
-        ((weight_t[])   {-0.4711036965, -0.228536197,  -0.5892522242, 0.4087150689,
-                          0.3303584266, -0.5972466427,  0.2702728878, 0.56123272}),
-        ((weight_t[])   {0.0109897829, -0.010631831, 0.00538060847, 0.01107019038})
+        ((grad_t[])     {0.0551848231, -0.0731901496, -0.0373887885, 0.0642465538,
+                        -0.0179213288, -0.1376678633, -0.0136443903, -0.061636002}),
+        ((grad_t[])     {-0.0494891481, 0.03159155, -0.7690304239, -0.0535095194})
     );
 
     nn_destroy(nn2);
