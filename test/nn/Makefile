@@ -21,6 +21,7 @@ NN_FORWARD_PASS_SOURCES = $(NN_CREATE_SOURCES) \
 	$(DIR)/layers/dense.c
 NN_BACKWARD_PASS_SOURCES = $(NN_FORWARD_PASS_SOURCES) \
 	$(DIR)/nn/nn_backward_pass.c \
+	$(DIR)/nn/nn_regularization.c \
 	$(DIR)/loss.c
 
 

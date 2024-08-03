@@ -1,7 +1,8 @@
 #include "../../include/nn.h"
+#include "nn_internal.h"
 
 
-/*  Applies backpropagation and optimizes the neural network */
+/*  Applies backpropagation to calculate the gradients */
 void nn_batch_backward_pass(nn_struct_t *nn, int batch_size)
 {
     int i;
@@ -34,9 +35,11 @@ void nn_batch_backward_pass(nn_struct_t *nn, int batch_size)
                 break;
         }
 
+        _nn_regularization(nn->n_weights[i], nn->reg_type[i], nn->reg_p[i],
+            nn->weights[i], nn->gw[i]);
+
         swap_ptr = nn->g_out;
         nn->g_out = nn->g_in;
         nn->g_in = swap_ptr;
     }
-
 }

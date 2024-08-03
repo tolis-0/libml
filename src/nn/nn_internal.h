@@ -18,4 +18,8 @@ void _nn_free_grad(nn_struct_t *nn);
 void _nn_rand_weights(nn_struct_t *nn);
 
 
+/*  nn/nn_regularization.c declarations */
+void _nn_regularization(int n, nn_reg_t type, weight_t p, cwrp_t w, grp_t gw);
+
+
 #endif // _NN_INTERNAL_H
