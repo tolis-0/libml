@@ -4,7 +4,7 @@
 #include <ml/normalization.h>
 #include <ml/nn.h>
 
-#define TRAIN_SIZE  1000
+#define TRAIN_SIZE  60000
 #define TEST_SIZE   10000
 
 
@@ -28,24 +28,24 @@ int main ()
     uint8_t *ub_data;
     value_t *data, *labels, *test_data, *test_labels;
 
-    ub_data = mnist_load_alloc("data/train-images.idx3-ubyte", UBYTE_TYPE, 3);
+    ub_data = mnist_load_alloc("data/train-images.idx3-ubyte", UBYTE_TYPE, 3, TRAIN_SIZE, 28, 28);
     data = ml_ubyte_convert(ub_data, TRAIN_SIZE*28*28);
     norm_minmax(data, TRAIN_SIZE, 28*28);
 
-    ub_data = mnist_load_alloc("data/train-labels.idx1-ubyte", UBYTE_TYPE, 1);
+    ub_data = mnist_load_alloc("data/train-labels.idx1-ubyte", UBYTE_TYPE, 1, TRAIN_SIZE);
     labels = ml_ubyte_onehot(ub_data, TRAIN_SIZE, 10);
 
-    ub_data = mnist_load_alloc("data/t10k-images.idx3-ubyte", UBYTE_TYPE, 3);
+    ub_data = mnist_load_alloc("data/t10k-images.idx3-ubyte", UBYTE_TYPE, 3, TEST_SIZE, 28, 28);
     test_data = ml_ubyte_convert(ub_data, TEST_SIZE*28*28);
     norm_minmax(test_data, TEST_SIZE, 28*28);
 
-    ub_data = mnist_load_alloc("data/t10k-labels.idx1-ubyte", UBYTE_TYPE, 1);
+    ub_data = mnist_load_alloc("data/t10k-labels.idx1-ubyte", UBYTE_TYPE, 1, TEST_SIZE);
     test_labels = ml_ubyte_onehot(ub_data, TEST_SIZE, 10);
 
     nn_spec_t mlp_spec[] = {
         input_layer(28*28),
-        dense_layer(40, b, lrelu),
-        dense_layer(20, b, lrelu),
+        dense_layer(40, b, relu),
+        dense_layer(20, b, relu),
         dense_layer(10, b, logistic),
         output_layer()
     };
@@ -54,9 +54,8 @@ int main ()
     print_nn_struct(mlp);
 
     mlp->learning_rate = 0.3;
-    mlp->opt = opt_create.cm(0.5);
 
-    nn_train(mlp, 500, 1000, TRAIN_SIZE, data, labels);
+    nn_train(mlp, 10, 100, TRAIN_SIZE, data, labels);
 
     const float train_accuracy = nn_accuracy(mlp, TRAIN_SIZE, data, labels);
     const float test_accuracy = nn_accuracy(mlp, TEST_SIZE, test_data, test_labels);
