@@ -10,8 +10,9 @@ void _nn_train(nn_struct_t *nn, int epochs, int batch_size, int set_size,
 {
     int i, j;
 
+    const int data_size = batch_size * nn->input_dims;
     const int batch_num = set_size / batch_size;
-    const int go_s = batch_size * nn->output_dims;
+    const int output_size = batch_size * nn->output_dims;
     const int gw_s = nn->total_weights + nn->total_biases;
     const int r = !!nn->stochastic;
 
@@ -22,10 +23,11 @@ void _nn_train(nn_struct_t *nn, int epochs, int batch_size, int set_size,
     for (i = 0; i < epochs; i++) {
         for (j = 0; j < batch_num; j++) {
             const int index = r ? (rand() % batch_num) : j;
-            nn->batch_outputs[-1] = x + batch_size * index;
+            const value_t *const _t = t + output_size * index;
+            nn->batch_outputs[-1] = x + data_size * index;
 
             nn_batch_forward_pass(nn, batch_size);
-            loss_diff_grad(go_s, nn->output, t, nn->g_out);
+            loss_diff_grad(output_size, nn->output, _t, nn->g_out);
             nn_batch_backward_pass(nn, batch_size);
 
             opt_t *const p = &(nn->opt.params);
