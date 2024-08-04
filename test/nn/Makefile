@@ -23,6 +23,9 @@ NN_BACKWARD_PASS_SOURCES = $(NN_FORWARD_PASS_SOURCES) \
 	$(DIR)/nn/nn_backward_pass.c \
 	$(DIR)/nn/nn_regularization.c \
 	$(DIR)/loss.c
+NN_TRAIN_SOURCES = $(NN_BACKWARD_PASS_SOURCES) \
+	$(DIR)/nn/nn_train.c \
+	$(DIR)/opt/opt_mem.c
 
 
 all: $(EXEF)
@@ -38,6 +41,10 @@ nn_batch_forward_pass.out: nn_batch_forward_pass.c $(NN_FORWARD_PASS_SOURCES)
 
 nn_batch_backward_pass.out: nn_batch_backward_pass.c $(NN_BACKWARD_PASS_SOURCES)
 	$(CC) $(CFLAGS) -o $@ $^ $(LIBFLAGS)
+
+nn_train.out: nn_train.c $(NN_TRAIN_SOURCES)
+	$(CC) $(CFLAGS) -o $@ $^ $(LIBFLAGS)
+
 
 
 clean:
