@@ -16,10 +16,10 @@
 
 
 /*  Helper macros to count elements of an array */
-#define __arr_count(x) sizeof(x) / sizeof((x)[0])
-#define __arr_count_null(x)                 \
-    ((x != NULL) ? sizeof(x)      : 0) /    \
-    ((x != NULL) ? sizeof((x)[0]) : 1)
+#define __arr_count(x) (sizeof(x) / sizeof((x)[0]))
+#define __arr_count_null(x) (               \
+    (((x) != NULL) ? sizeof(x)      : 0) /  \
+    (((x) != NULL) ? sizeof((x)[0]) : 1))
 
 
 /*  Macro to check equality between numbers */
@@ -39,6 +39,20 @@
     {[0 ... (size)-1] = (val)}      // uniform array
 
 
+/*  Assert macros */
+#define __assert_null(arr)      \
+    assert((arr) == NULL)
+#define __assert_not_null(arr)  \
+    assert((arr) != NULL)
+#define __assert_cond_null(cond, arr)   \
+    ((cond) ? __assert_null(arr) : __assert_not_null(arr))
+#define __Static_assert_size(arr, n)    \
+    _Static_assert(__arr_count(arr) == (n), "array size mismatch")
+#define __Static_assert_cond_size(cond, arr, n)             \
+    ((cond) ? _Static_assert(__arr_count_null(arr) == (n),  \
+        "array size mismatch") : (void) 0)
+
+
 /*  Macros to help print different types of values */
 #if   _STD_ML_TYPE_ == _ML_TYPE_DOUBLE_
 #   define __print_lf  "%.10lf"
@@ -46,7 +60,6 @@
 #   define __print_lf  "%.7f"
 #endif
 #define __print_d   "%d"
-
 
 
 /*  Macro to compare results with expected values
@@ -80,11 +93,11 @@
 
 
 /*  Handling different types for __exp_check */
+#define __exp_check_f __exp_check_lf
 #define __exp_check_lf(name, n, y, e) \
     __exp_check(lf, name, n, y, e)
 #define __exp_check_d(name, n, y) \
     __exp_check(d, name, n, y, 1)
-
 
 
 #endif // _TEST_H
