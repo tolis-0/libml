@@ -145,7 +145,7 @@ void _nn_create_weights(nn_struct_t *nn, const char *file, int line)
         total_b += nn->n_biases[i];
     }
 
-    _nn_create_error(total_w <= 0, "invalid number of weights");
+    _nn_create_error(total_w <= 0, "invalid number of weights: %d", total_w);
 
     nn->total_weights = total_w;
     nn->total_biases = total_b;

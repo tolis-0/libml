@@ -92,7 +92,7 @@ typedef enum nn_activ {
     }
 #define lrelu_layer() {                 \
         .type = LRELU,                  \
-        .activ = LRELU_ACTIV            \
+        .activ = LINEAR_ACTIV           \
     }
 #define logistic_layer() {              \
         .type = LOGISTIC,               \
@@ -100,7 +100,7 @@ typedef enum nn_activ {
     }
 #define tanh_layer() {                  \
         .type = TANH,                   \
-        .activ = TANH_ACTIV             \
+        .activ = LINEAR_ACTIV           \
     }
 
 
