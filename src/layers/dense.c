@@ -4,7 +4,7 @@
 
 /*  Computes the result y of a single forward pass in the dense layer */
 void dense_forward(cdim_t d, cvrp_t x, cwrp_t w,
-    int hb, cwrp_t b, vrp_t y)
+    _Bool hb, cwrp_t b, vrp_t y)
 {
     const int d0 = d[0], d1 = d[1]; // d0 is input dimension and d1 is output
 
@@ -22,7 +22,7 @@ void dense_forward(cdim_t d, cvrp_t x, cwrp_t w,
 /*  Computes the gradients of a single backward pass where the output
     and gradient of the output of the layer is given. Gb is always Gy */
 void dense_backward(cdim_t d, cvrp_t x, cwrp_t w,
-    int cx, cgrp_t Gy, grp_t Gx, grp_t Gw)
+    _Bool cx, cgrp_t Gy, grp_t Gx, grp_t Gw)
 {
     const int d0 = d[0], d1 = d[1];
     int i, j, k = 0;
@@ -42,7 +42,7 @@ void dense_backward(cdim_t d, cvrp_t x, cwrp_t w,
 
 /*  Computes the result y of a batch forward pass in the dense layer */
 void batch_dense_forward(cdim3_t d, cvrp_t x, cwrp_t w,
-    int hb, cwrp_t b, cvrp_t ones, vrp_t y)
+    _Bool hb, cwrp_t b, cvrp_t ones, vrp_t y)
 {
     const int d0 = d[0], d1 = d[1], k = d[2]; // k is batch size
 
@@ -58,7 +58,7 @@ void batch_dense_forward(cdim3_t d, cvrp_t x, cwrp_t w,
 
 
 void batch_dense_backward(cdim3_t d, cvrp_t x, cwrp_t w,
-    int cx, cvrp_t ones, cgrp_t Gy, grp_t Gx, grp_t Gw, int hb, grp_t Gb)
+    _Bool cx, cvrp_t ones, cgrp_t Gy, grp_t Gx, grp_t Gw, _Bool hb, grp_t Gb)
 {
     const int d0 = d[0], d1 = d[1], k = d[2];
 

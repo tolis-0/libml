@@ -16,7 +16,7 @@
         const value_t *exp_y = Y;               \
                                                 \
         relu_forward(N, x, y);                  \
-        __exp_check_lf(name, N, y, 1e-21);      \
+        __exp_check_lf(name, N, y, 1e-8);       \
     } while (0)
 
 

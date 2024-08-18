@@ -1,15 +1,18 @@
 CC = gcc
-CFLAGS = -g3 -Wall -Wextra -fsanitize=address -fsanitize=undefined -fstack-protector
+CFLAGS = -g3 -Wall -Wextra -fsanitize=address -fsanitize=undefined
 LIBFLAGS = -lopenblas -lm
 
 SOURCEF = $(wildcard *.c)
 EXEF = $(patsubst %.c, %.out, $(SOURCEF))
-TESTF = ../../src/activations.c
+TESTDIR = ../../src/layers/activations
 
 all: $(EXEF)
 
-%.out: %.c $(TESTF)
-	$(CC) $(CFLAGS) -o $@ $< $(TESTF) $(LIBFLAGS)
+%_forward.out: %_forward.c $(TESTDIR)/%.c
+	$(CC) $(CFLAGS) -o $@ $^ $(LIBFLAGS)
+
+%_backward.out: %_backward.c $(TESTDIR)/%.c
+	$(CC) $(CFLAGS) -o $@ $^ $(LIBFLAGS)
 
 clean:
 	find . -type f -executable -delete

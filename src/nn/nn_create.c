@@ -5,169 +5,166 @@
 #include "nn_internal.h"
 
 
-#define _nn_create_error(cond, str, ...)                            \
-    if (__builtin_expect(!!(cond), 0)) {                            \
-        fprintf(stderr, "\e[1;39mnn_create\e[0;39m"                 \
-            " (from \e[1;39m%s:%d\e[0;39m) \e[1;31merror\e[0;39m: " \
-            str "\n", file, line, ##__VA_ARGS__);                   \
-        exit(EXIT_FAILURE);                                         \
-    }
-
-
-#define activation_template(op)                                     \
-    nn->op_types[j] = op##_OP;                                      \
-    nn->n_dims[j] = dims;                                           \
-    nn->n_weights[j] = nn->n_biases[j] = 0;                         \
-    nn->weights[j] = nn->biases[j] = NULL;                          \
-    nn->reg_type[j] = NONE, nn->reg_p[j] = 0;
-
-
-#define _nn_malloc_trick *
-#define _nn_calloc_trick ,
-
-#define _nn_alloc_check(var, type) _nn_alloc_check2(var, type, m, 0)
-#define _nn_alloc_check2(var, type, m, k)                           \
-    do {                                                            \
-        nn->var = m##alloc((nn->n_layers + k)                       \
-            _nn_##m##alloc_trick sizeof(type));                     \
-        _nn_create_error(nn->var == NULL,                           \
-            "failed to allocate memory for " #var);                 \
-    } while (0)
-
-
-/*  Helper function to measure number of layers in the network
-    and run some initial structure checks */
-void _nn_measure_layers(nn_struct_t *nn,
-    nn_spec_t *spec, const char *file, int line)
+/*
+ * Helper function to measure number of layers in the network
+ * and run some initial structure checks
+ */
+static void _nn_measure_layers(nn_struct_t *nn, nn_spec_t *spec)
 {
-    int i;
+    int i, nl;
 
-    for (i = 0, nn->n_layers = -1; spec[i].type != OUTPUT; i++) {
-        if (spec[i].activ != LINEAR_ACTIV) nn->n_layers++;
-        nn->n_layers++;
-    }
+    for (i = 0, nl = -1; spec[i].type != OUTPUT_SPEC; i++, nl++)
+        if (spec[i].activ != EMPTY_OP) nl++;
 
-    _nn_create_error(nn->n_layers <= 0, "invalid number of layers");
-    _nn_create_error(spec[0].type != INPUT, "missing input on neural network");
+    __ml_assert(nl > 0, "invalid number of layers");
+    __ml_assert(spec[0].type == INPUT_SPEC, "missing input on neural network");
+
+    nn->num_of_layers = nl;
 }
 
 
-/*  Helper function to allocate memory for most of the network struct fields */
-void _nn_alloc(nn_struct_t *nn, const char *file, int line)
+/*
+ * Helper function to allocate memory for most of the network fields
+ */
+static void _nn_alloc(nn_struct_t *nn)
 {
-    _nn_alloc_check2(n_dims, int, m, 1);
-    nn->n_dims++;
-    _nn_alloc_check(op_types, nn_ops_t);
+    const int nl = nn->num_of_layers;
 
-    _nn_alloc_check(n_weights, int);
-    _nn_alloc_check(n_biases, int);
-    _nn_alloc_check(weights, weight_t *);
-    _nn_alloc_check(biases, weight_t *);
+    /* nn->num_of_dims[-1] would be input dimensions for ease */
+    __ml_malloc_check(nn->num_of_dims, int, nl + 1);
+    nn->num_of_dims++;
+    __ml_malloc_check(nn->operation_type, nn_op_t, nl);
 
-    _nn_alloc_check(gw, grad_t *);
-    _nn_alloc_check(gb, grad_t *);
+    __ml_malloc_check(nn->weights.num, int, nl);
+    __ml_malloc_check(nn->biases.num, int, nl);
 
-    _nn_alloc_check(reg_type, nn_reg_t);
-    _nn_alloc_check(reg_p, weight_t);
+    /* intialize double pointers to NULL */
+    __ml_calloc_check(nn->weights.of_layer, weight_t *, nl);
+    __ml_calloc_check(nn->biases.of_layer, weight_t *, nl);
+    __ml_calloc_check(nn->grad.weights, grad_t *, nl);
+    __ml_calloc_check(nn->grad.biases, grad_t *, nl);
 
-    /*  nn->outputs[-1] would point to the input for ease */
-    _nn_alloc_check2(outputs, value_t *, m, 1);
-    nn->outputs++;
+    __ml_malloc_check(nn->regularization, nn_reg_t, nl);
 
-    /*  batch_outputs won't be initialized with nn_create
-        so we initialize them to 0 (NULL pointers)        */
-    _nn_alloc_check2(batch_outputs, value_t *, c, 1);
-    nn->batch_outputs++;
-    nn->k = 0;
+    /* nn->interm.outputs[-1] would point to the input
+     * also init to NULL */
+    __ml_calloc_check(nn->interm.outputs, value_t *, nl + 1);
+    nn->interm.outputs++;
 }
 
 
-/*  Helper function to create the layers in the neural network struct */
-void _nn_create_layers(nn_struct_t *nn,
-    nn_spec_t *spec, const char *file, int line)
+/* Basic initializations for activation functions */
+static void _nn_activ_layer_init(nn_struct_t *nn, nn_op_t op, int dims, int j)
 {
-    nn_spec_layer_t layer_type;
-    int i, j, dims;
+    nn->operation_type[j] = op,
+    nn->num_of_dims[j] = dims,
+    nn->weights.num[j] = 0,
+    nn->biases.num[j] = 0,
+    nn->weights.of_layer[j] = NULL,
+    nn->biases.of_layer[j] = NULL,
+    nn->regularization[j] = NO_REG;
+}
 
-    nn->input_dims = nn->n_dims[-1] = dims = spec[0].dims;
+/*
+ * Helper function to create the layers in the neural network struct
+ */
+static void _nn_create_layers(nn_struct_t *nn, nn_spec_t *spec)
+{
+    nn_specl_t layer_type;
+    int i, j, dims, max_d;
 
-    _nn_create_error(nn->input_dims <= 0,
-        "invalid number of input dimensions: %d", nn->input_dims);
+    nn->num_of_dims[-1] = dims = spec[0].dims;
+    max_d = 0;
 
-    for (j = 0, i = 1; spec[i].type != OUTPUT; j++, i++) {
+    __ml_assert(dims > 0, "invalid number of input dimensions: %d", dims);
+
+    /*
+     * i: layer specified in nn_spec
+     * j: layer in nn_struct (counts activation functions)
+     * dims: keeps count of current dimensions (useful for
+     * layers that keep current number of dims) e.g. nnl_relu()
+     * We know that spec[0].type is INPUT_SPEC so we skip it
+     */
+    for (j = 0, i = 1; spec[i].type != OUTPUT_SPEC; j++, i++) {
         layer_type = spec[i].type;
-activation_redo:
+        max_d = (dims > max_d) ? dims : max_d;
         switch (layer_type) {
-            case DENSE:
-                nn->op_types[j] = DENSE_OP;
-                nn->n_weights[j] = dims * spec[i].dims;
-                nn->n_dims[j] = dims = spec[i].dims;
-                nn->n_biases[j] = spec[i].bias ? dims : 0;
-                nn->reg_type[j] = spec[i].reg;
-                nn->reg_p[j] = spec[i].reg_p;
-                if (spec[i].activ != LINEAR_ACTIV) {
-                    layer_type = spec[i].activ;
-                    j++;
-                    goto activation_redo;
+            case DENSE_SPEC:
+                nn->operation_type[j] = DENSE_OP;
+                /* previous dims * current dims */
+                nn->weights.num[j] = dims * spec[i].dims;
+                /* update dims */
+                nn->num_of_dims[j] = dims = spec[i].dims;
+                nn->biases.num[j] = spec[i].hb ? dims : 0;
+                nn->regularization[j] = spec[i].reg;
+                /* handle activation functions of dense layer */
+                if (spec[i].activ != EMPTY_OP) {
+                    __ml_assert(_nn_is_activ_op(spec[i].activ),
+                        "activation function of spec layer %d is not valid", i);
+                    _nn_activ_layer_init(nn, spec[i].activ, dims, ++j);
                 }
                 break;
-            case RELU:
-                activation_template(RELU);
+
+            /*
+             * Using X-macro for cases of activation functions
+             */
+#           define X(_, NAME, ...)                              \
+            case NAME##_SPEC:                                   \
+                _nn_activ_layer_init(nn, NAME##_OP, dims, j);   \
                 break;
-            case LRELU:
-                activation_template(LRELU);
+            ML_ACTIVATION_FUNCTIONS_DECLARATIONS
+#           undef X
+
+            case INPUT_SPEC:
+                _ml_throw_error("input layer in the middle of the network");
                 break;
-            case LOGISTIC:
-                activation_template(LOGISTIC);
-                break;
-            case TANH:
-                activation_template(TANH);
-                break;
-            case INPUT:
-                _nn_create_error(1, "input layer in the middle of the network");
-                break; // for implicit fallthrough warning
             default:
-                _nn_create_error(1, "layer type not recognized: %d", spec[i].type);
+                _ml_throw_error("operation type of spec layer %d is not valid", spec[i].type);
         }
     }
 
-    nn->output_dims = dims;
+    nn->max_dims = max_d;
 }
 
 
-/*  Helper function to create the weights and biases */
-void _nn_create_weights(nn_struct_t *nn, const char *file, int line)
+/*
+ * Helper function to create the weights and biases
+ */
+static void _nn_create_weights(nn_struct_t *nn)
 {
     int i, total_w, total_b, i_w, i_b;
 
-    for (total_w = total_b = i = 0; i < nn->n_layers; i++) {
-        total_w += nn->n_weights[i];
-        total_b += nn->n_biases[i];
+    for (total_w = total_b = i = 0; i < nn->num_of_layers; i++) {
+        total_w += nn->weights.num[i];
+        total_b += nn->biases.num[i];
     }
 
-    _nn_create_error(total_w <= 0, "invalid number of weights: %d", total_w);
+    __ml_assert(total_w > 0, "the network has an invalid number of weights");
+    __ml_assert(total_b >= 0, "the network has an invalid number of biases");
 
-    nn->total_weights = total_w;
-    nn->total_biases = total_b;
-    nn->biases_ptr = NULL;
-    nn->weights_ptr = NULL;
+    nn->weights.total = total_w;
+    nn->biases.total = total_b;
 
-    nn->weights_ptr = malloc((total_w + total_b) * sizeof(weight_t));
+    /*
+     * nn->weights.ptr has all the weights trainable
+     * directly by the optimizers as a single array
+     * including the biases which start after the weights
+     */
+    __ml_malloc_check(nn->weights.ptr, weight_t, total_w + total_b);
+
     if (total_b > 0) {
-        nn->biases_ptr = nn->weights_ptr + total_w;
-        memset(nn->biases_ptr, 0, total_b * sizeof(char));
+        nn->biases.ptr = nn->weights.ptr + total_w;
+        memset(nn->biases.ptr, 0, total_b * sizeof(weight_t));
+    } else {
+        nn->biases.ptr = NULL;
     }
 
-    _nn_create_error(nn->weights_ptr == NULL,
-        "failed to allocate memory for weights, "
-        "N = %d", (total_w + total_b));
+    for (i = i_w = i_b = 0; i < nn->num_of_layers; i++) {
+        const int w_n = nn->weights.num[i];
+        const int b_n = nn->biases.num[i];
 
-    for (i = i_w = i_b = 0; i < nn->n_layers; i++) {
-        const int w_n = nn->n_weights[i];
-        const int b_n = nn->n_biases[i];
-
-        nn->weights[i] = (w_n > 0) ? (nn->weights_ptr + i_w) : NULL;
-        nn->biases[i] = (b_n > 0) ? (nn->biases_ptr + i_b) : NULL;
+        nn->weights.of_layer[i] = (w_n > 0) ? (nn->weights.ptr + i_w) : NULL;
+        nn->biases.of_layer[i] = (b_n > 0) ? (nn->biases.ptr + i_b) : NULL;
         i_w += w_n;
         i_b += b_n;
     }
@@ -176,96 +173,73 @@ void _nn_create_weights(nn_struct_t *nn, const char *file, int line)
 }
 
 
-/*  Helper function to allocate memory for intermediate values */
-void _nn_alloc_interm(nn_struct_t *nn, const char *file, int line)
+/*
+ * Helper function to allocate memory for ones array
+ */
+static void _nn_alloc_ones(nn_intermv_t *nni)
 {
-    int i;
+    nni->batch_size = 0;
+    nni->ones_size = ONES_SIZE_DEFAULT;
 
-    for (i = 0; i < nn->n_layers; i++) {
-        nn->outputs[i] = malloc(nn->n_dims[i] * sizeof(value_t));
-        _nn_create_error(nn->outputs[i] == NULL,
-            "failed to allocate memory for intermediate values, "
-            "number of neurons: %d", nn->n_dims[i]);
-    }
+    __ml_malloc_check(nni->ones, value_t, nni->ones_size);
 
-    nn->ones_n = 16;
-    nn->ones = malloc(nn->ones_n * sizeof(value_t));
-
-    _nn_create_error(nn->ones == NULL,
-            "failed to allocate memory for the ones array");
-
-    for (i = 0; i < nn->ones_n; i++) {
-        nn->ones[i] = 1.0;
-    }
-
-    nn->output = NULL;
+    for (int i = 0; i < nni->ones_size; i++)
+        nni->ones[i] = __ml_fpc(1.0);
 }
 
 
-/*  Helper function to determine values for gradients */
-void _nn_grad_vals(nn_struct_t *nn, const char *file, int line)
+/*
+ * Helper function to allocate memory for gradients
+ */
+static void _nn_grad_init(nn_struct_t *nn)
 {
-    int i, max_d, i_w, i_b;
-    const int total_w = nn->total_weights;
-    const int total_b = nn->total_biases;
+    int i, i_w, i_b;
+    const int total_w = nn->weights.total;
+    const int total_b = nn->biases.total;
+    grad_t *restrict gb_ptr;
 
-    max_d = nn->input_dims;
+    nn->grad.batch_size = 0;
+    nn->grad.out = NULL;
+    nn->grad.in = NULL;
 
-    for (i = 0; i < nn->n_layers; i++) {
-        max_d = (nn->n_dims[i] > max_d) ? nn->n_dims[i] : max_d;
-    }
+    __ml_malloc_check(nn->grad.ptr, grad_t, total_w + total_b);
 
-    nn->g_k = 0;
-    nn->go_n = max_d;
+    gb_ptr = (total_b > 0) ? nn->grad.ptr + total_w : NULL;
 
-    nn->gw_ptr = NULL;
-    nn->gb_ptr = NULL;
-    nn->g_out = NULL;
-    nn->g_in = NULL;
+    for (i = i_w = i_b = 0; i < nn->num_of_layers; i++) {
+        const int w_n = nn->weights.num[i];
+        const int b_n = nn->biases.num[i];
 
-    nn->gw_ptr = malloc((total_w + total_b) * sizeof(weight_t));
-    if (total_b > 0) {
-        nn->gb_ptr = nn->gw_ptr + total_w;
-    }
-
-    _nn_create_error(nn->gw_ptr == NULL,
-        "failed to allocate memory for gw, "
-        "N = %d", (total_w + total_b));
-
-    for (i = i_w = i_b = 0; i < nn->n_layers; i++) {
-        const int w_n = nn->n_weights[i];
-        const int b_n = nn->n_biases[i];
-
-        nn->gw[i] = (w_n > 0) ? (nn->gw_ptr + i_w) : NULL;
-        nn->gb[i] = (b_n > 0) ? (nn->gb_ptr + i_b) : NULL;
+        nn->grad.weights[i] = (w_n > 0) ? (nn->grad.ptr + i_w) : NULL;
+        nn->grad.biases[i] = (b_n > 0) ? (gb_ptr + i_b) : NULL;
         i_w += w_n;
         i_b += b_n;
     }
 }
 
 
-/*  Main function that creates the neural network struct */
-nn_struct_t *_nn_create(nn_spec_t *spec, const char *file, int line)
+/*
+ * Main function that creates the neural network struct
+ */
+nn_struct_t *_nn_create(nn_spec_t *spec)
 {
-    nn_struct_t *nn = malloc(sizeof(nn_struct_t));
+    nn_struct_t *nn;
+    __ml_malloc_check(nn, nn_struct_t, 1);
 
-    _nn_create_error(nn == NULL, "failed to allocate memory for nn struct");
+    _nn_measure_layers(nn, spec);
+    _nn_alloc(nn);
+    _nn_create_layers(nn, spec);
+    _nn_create_weights(nn);
+    _nn_alloc_ones(&nn->interm);
+    _nn_grad_init(nn);
 
-    _nn_measure_layers(nn, spec, file, line);
-    _nn_alloc(nn, file, line);
-    _nn_create_layers(nn, spec, file, line);
-    _nn_create_weights(nn, file, line);
-    _nn_alloc_interm(nn, file, line);
-    _nn_grad_vals(nn, file, line);
+    for (int i = 0; i < MEM_ADDR_SIZE; i++)
+        nn->mem_addr[i] = NULL;
 
-    for (int i = 0; i < NN_ADDRK_SIZE; i++) {
-        nn->addr_keeper[i] = NULL;
-    }
-
-    /*  Default values: */
-    nn->learning_rate   = 0.01;
+    /* Default hyperparameter values: */
+    nn->learning_rate   = __ml_fpc(0.01);
     nn->stochastic      = 1;
-    nn->opt             = opt_create.gd();
+    nn->optimizer       = opt_create.gd();
 
     return nn;
 }

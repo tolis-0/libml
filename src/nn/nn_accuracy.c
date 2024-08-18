@@ -4,33 +4,27 @@
 #include "../../include/nn.h"
 #include "nn_internal.h"
 
+#define THRESHOLD __ml_fpc(0.5)
 
-#define _nn_accuracy_error(cond, str, ...)                          \
-    if (__builtin_expect(!!(cond), 0)) {                            \
-        fprintf(stderr, "\e[1;39mnn_accuracy\e[0;39m"               \
-            " (from \e[1;39m%s:%d\e[0;39m) \e[1;31merror\e[0;39m: " \
-            str "\n", file, line, ##__VA_ARGS__);                   \
-        exit(EXIT_FAILURE);                                         \
-    }
-
-
-/*  Calculates the accuracy of the neural network on some data */
-float _nn_accuracy(nn_struct_t *nn, int size, value_t *x, value_t *t,
-    const char *file, int line)
+/*
+ * Calculates the accuracy of the neural network on some data
+ */
+float _nn_accuracy(nn_struct_t *nn, int size, value_t *x, value_t *t)
 {
-    const int o_n = nn->output_dims;
-    int i, j, arg_max, one_index, correct;
-    value_t *t_ptr, *o_ptr;
+    const int o_n = NN_OUTPUT_DIMS(nn);
+    int i, j, correct;
+    int arg_max, one_index;
+    const value_t *restrict t_ptr, *restrict o_ptr;
     value_t val, max;
 
 
-    _nn_alloc_batch(nn, size, "nn_accuracy", file, line);
+    _nn_alloc_interm(nn, size);
 
-    nn->batch_outputs[-1] = x;
-    nn_batch_forward_pass(nn, size);
+    NN_INPUT(nn) = x;
+    _nn_batch_forward_pass(nn, size);
 
     t_ptr = t;
-    o_ptr = nn->output;
+    o_ptr = NN_OUTPUT(nn);
     correct = 0;
 
     for (i = 0; i < size; i++) {
@@ -40,12 +34,9 @@ float _nn_accuracy(nn_struct_t *nn, int size, value_t *x, value_t *t,
 
         for (j = 0; j < o_n; j++) {
             val = o_ptr[j];
-            one_index = (t_ptr[j] > 0.5) ? j : one_index;
+            one_index = (t_ptr[j] > THRESHOLD) ? j : one_index;
             max = (val > max) ? (arg_max = j, val) : max;
         }
-
-        _nn_accuracy_error(arg_max < 0, "arg_max is %d", arg_max);
-        _nn_accuracy_error(one_index < 0, "one_index is %d", one_index);
 
         correct += (arg_max == one_index);
 
@@ -53,7 +44,7 @@ float _nn_accuracy(nn_struct_t *nn, int size, value_t *x, value_t *t,
         o_ptr += o_n;
     }
 
-    _nn_free_batch(nn);
+    _nn_free_interm(nn);
 
     return correct / (float) size;
 }

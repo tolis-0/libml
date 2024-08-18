@@ -4,37 +4,35 @@
 #include "../opt/opt_internal.h"
 
 
-/*  Trains the neural network */
-void _nn_train(nn_struct_t *nn, int epochs, int batch_size, int set_size,
-    value_t *x, value_t *t, const char *file, int line)
+/*
+ * User function that trains the neural network
+ */
+void _nn_train(nn_struct_t *nn, int epochs, int batch_size, int set_size, value_t *x, value_t *t)
 {
-    int i, j;
-
-    const int data_size = batch_size * nn->input_dims;
+    const size_t data_size = (size_t) batch_size * (size_t) NN_INPUT_DIMS(nn);
+    const size_t output_size = (size_t) batch_size * (size_t) NN_OUTPUT_DIMS(nn);
     const int batch_num = set_size / batch_size;
-    const int output_size = batch_size * nn->output_dims;
-    const int gw_s = nn->total_weights + nn->total_biases;
-    const int r = !!nn->stochastic;
+    const int gw_s = nn->weights.total + nn->biases.total;
 
-    _opt_alloc_val(nn, "nn_train", file, line);
-    _nn_alloc_batch(nn, batch_size, "nn_train", file, line);
-    _nn_alloc_grad(nn, batch_size, "nn_train", file, line);
+    _opt_alloc_val(nn);
+    _nn_alloc_interm(nn, batch_size);
+    _nn_alloc_grad(nn, batch_size);
 
-    for (i = 0; i < epochs; i++) {
-        for (j = 0; j < batch_num; j++) {
-            const int index = r ? (rand() % batch_num) : j;
-            const value_t *const _t = t + output_size * index;
-            nn->batch_outputs[-1] = x + data_size * index;
+    for (int i = 0; i < epochs; i++) {
+        for (int j = 0; j < batch_num; j++) {
+            const size_t index = nn->stochastic ? (rand() % batch_num) : j;
+            const value_t *restrict const _t = &t[output_size * index];
+            NN_INPUT(nn) = &x[data_size * index];
 
-            nn_batch_forward_pass(nn, batch_size);
-            loss_diff_grad(output_size, nn->output, _t, nn->g_out);
-            nn_batch_backward_pass(nn, batch_size);
+            _nn_batch_forward_pass(nn, batch_size);
+            loss_diff_grad(output_size, NN_OUTPUT(nn), _t, nn->grad.out);
+            _nn_batch_backward_pass(nn, batch_size);
 
-            opt_t *const p = &(nn->opt.params);
-            nn->opt.call(p, gw_s, nn->learning_rate, nn->gw_ptr, nn->weights_ptr);
+            opt_t *restrict const p = &(nn->optimizer.params);
+            nn->optimizer.call(p, gw_s, nn->learning_rate, nn->grad.ptr, nn->weights.ptr);
         }
     }
 
-    _nn_free_batch(nn);
+    _nn_free_interm(nn);
     _nn_free_grad(nn);
 }

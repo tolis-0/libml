@@ -4,19 +4,20 @@
 #include <string.h>
 #include "../test.h"
 #include "../../include/nn.h"
+#include "../../src/nn/nn_internal.h"
 
 
 #define nn_forward_pass_test(name, nn, W, B, X, VAL)        \
     do {                                                    \
-        const int w_n = nn->total_weights;                  \
-        const unsigned long b_n = nn->total_biases;         \
-        const int i_n = nn->input_dims;                     \
+        const int w_n = nn->weights.total;                  \
+        const int b_n = nn->biases.total;                   \
+        const int i_n = NN_INPUT_DIMS(nn);                  \
         const int i_v = __arr_count(VAL);                   \
-        const int l_n = nn->n_layers;                       \
+        const int l_n = nn->num_of_layers;                  \
                                                             \
-        assert(__arr_count(W) == w_n);                      \
-        assert(__arr_count_null(B) == b_n);                 \
-        assert(__arr_count(X) == i_n);                      \
+        __assert_size(W, w_n);                              \
+        __assert_size_null(B, b_n);                         \
+        __assert_size(X, i_n);                              \
                                                             \
         const weight_t *w = W;                              \
         const weight_t *b = B;                              \
@@ -24,24 +25,24 @@
         const value_t *exp_val = VAL;                       \
         value_t *val = malloc(i_v * sizeof(value_t));       \
                                                             \
-        /*  Set the custom weights and biases */            \
-        memcpy(nn->weights_ptr, w, w_n * sizeof(weight_t)); \
-        memcpy(nn->biases_ptr, b, b_n * sizeof(weight_t));  \
+        /* Set the custom weights and biases */             \
+        memcpy(nn->weights.ptr, w, w_n * sizeof(weight_t)); \
+        memcpy(nn->biases.ptr, b, b_n * sizeof(weight_t));  \
                                                             \
-        nn->outputs[-1] = x;                                \
-        nn_forward_pass(nn);                                \
+        _nn_alloc_interm(nn, 1);                            \
+        NN_INPUT(nn) = x;                                   \
+        _nn_forward_pass(nn);                               \
                                                             \
         for (int i = 0, val_i = 0; i < l_n; i++) {          \
-            const int n = nn->n_dims[i];                    \
-            const value_t *o = nn->outputs[i];              \
+            const int n = nn->num_of_dims[i];               \
+            const value_t *o = nn->interm.outputs[i];       \
             memcpy(val + val_i, o, n * sizeof(value_t));    \
             val_i += n;                                     \
         }                                                   \
                                                             \
         __exp_check_lf(name " (outputs)", i_v, val, 1e-6);  \
                                                             \
-        assert(nn->output == nn->outputs[l_n - 1]);         \
-                                                            \
+        _nn_free_interm(nn);                                \
         free(val);                                          \
     } while (0)
 
@@ -52,10 +53,10 @@ int main ()
 
 
     nn_spec_t spec1[] = {
-        input_layer(2),
-        dense_layer(2, b, relu),
-        dense_layer(2, b, logistic),
-        output_layer()
+        nnl_input(2),
+        nnl_dense(2, 1, RELU_OP, NO_REG),
+        nnl_dense(2, 1, LOGISTIC_OP, NO_REG),
+        NN_SPEC_END
     };
 
     nn_struct_t *nn1 = nn_create(spec1);

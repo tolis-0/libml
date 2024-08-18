@@ -9,20 +9,10 @@
 
 
 /*
- *  To run this example do:
- *  gcc -O2 first.c -o first.out -lml -lm -lopenblas
- *  ./first.out
+ * To run this example do:
+ * gcc -O2 first.c -o first.out -lml -lm -lopenblas
+ * ./first.out
 */
-
-void print_nn_struct(nn_struct_t* nn);
-
-const char *nn_activ_str[] = {
-    "Linear",
-    "ReLU",
-    "Logistic",
-    NULL
-};
-
 int main ()
 {
     uint8_t *ub_data;
@@ -43,16 +33,14 @@ int main ()
     test_labels = ml_ubyte_onehot(ub_data, TEST_SIZE, 10);
 
     nn_spec_t mlp_spec[] = {
-        input_layer(28*28),
-        dense_layer(40, b, relu),
-        dense_layer(20, b, relu),
-        dense_layer(10, b, logistic),
-        output_layer()
+        nnl_input(28*28),
+        nnl_dense(40, 1, RELU_OP, NO_REG),
+        nnl_dense(20, 1, RELU_OP, NO_REG),
+        nnl_dense(10, 1, LOGISTIC_OP, NO_REG),
+        NN_SPEC_END
     };
 
     nn_struct_t *mlp = nn_create(mlp_spec);
-    print_nn_struct(mlp);
-
     mlp->learning_rate = 0.3;
 
     nn_train(mlp, 10, 100, TRAIN_SIZE, data, labels);
@@ -74,28 +62,4 @@ int main ()
     nn_destroy(mlp);
 
     return 0;
-}
-
-
-#define print_struct_helper(str, type, var) \
-    printf(str ": "); \
-    for (int i = 0; i < n; i++) printf(type " ", nn->var[i]); \
-    putchar('\n');
-
-void print_nn_struct(nn_struct_t* nn)
-{
-    int n = nn->n_layers;
-    printf("Number of layers: %d\n", n);
-    printf("Number of weights: %d\n", nn->total_weights);
-    printf("Number of biases: %d\n", nn->total_biases);
-    printf("Starting weights pointer: %p\n", nn->weights_ptr);
-    printf("Starting biases pointer: %p\n", nn->biases_ptr);
-
-    print_struct_helper("Dims", "%d", n_dims);
-    print_struct_helper("Weights", "%d", n_weights);
-    print_struct_helper("Biases", "%d", n_biases);
-    print_struct_helper("Reguralization", "%d", reg_type);
-    print_struct_helper("Parameter", "%f", reg_p);
-    print_struct_helper("Weight ptrs", "%p", weights);
-    print_struct_helper("Bias ptrs", "%p", biases);
 }

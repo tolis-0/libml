@@ -3,19 +3,19 @@
 #include "nn_internal.h"
 
 
-/*  User function that predicts an output of the neural network */
-void _nn_predict(nn_struct_t *nn, int k, const value_t *input, value_t *output,
-    const char *file, int line)
+/*
+ * User function that predicts an output of the neural network
+ */
+void _nn_predict(nn_struct_t *nn, int k, const value_t *input, value_t *output)
 {
-    if (k == 1) {
-        nn->outputs[-1] = (value_t *) input;
-        nn_forward_pass(nn);
-    } else {
-        _nn_alloc_batch(nn, k, "nn_predict", file, line);
+    _nn_alloc_interm(nn, k);
 
-        nn->batch_outputs[-1] = (value_t *) input;
-        nn_batch_forward_pass(nn, k);
-    }
+    NN_INPUT(nn) = (value_t *) input;
+    value_t *swap = NN_OUTPUT(nn);
+    NN_OUTPUT(nn) = output;
 
-    memcpy(output, nn->output, k * nn->output_dims * sizeof(value_t));
+    _nn_batch_forward_pass(nn, k);
+
+    // TODO: need to test the swap for both NN_OUTPUT(nn) and output
+    NN_OUTPUT(nn) = swap;
 }

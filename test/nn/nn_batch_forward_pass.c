@@ -9,20 +9,20 @@
 
 #define nn_batch_forward_pass_test(name, nn, K, W, B, X, VAL)       \
     do {                                                            \
-        const int w_n = nn->total_weights;                          \
-        const unsigned b_n = nn->total_biases;                      \
-        const int i_n = nn->input_dims;                             \
+        const int w_n = nn->weights.total;                          \
+        const int b_n = nn->biases.total;                           \
+        const int i_n = NN_INPUT_DIMS(nn);                          \
         const int i_v = __arr_count(VAL);                           \
-        const int l_n = nn->n_layers;                               \
+        const int l_n = nn->num_of_layers;                          \
                                                                     \
         int n_outputs = 0;                                          \
         for (int i = 0; i < l_n; i++)                               \
-            n_outputs += nn->n_dims[i];                             \
+            n_outputs += nn->num_of_dims[i];                        \
                                                                     \
-        assert(__arr_count(W) == w_n);                              \
-        assert(__arr_count_null(B) == b_n);                         \
-        assert(__arr_count(X) == i_n * (K));                        \
-        assert(__arr_count(VAL) == (K) * n_outputs);                \
+        __assert_size(W, w_n);                                      \
+        __assert_size_null(B, b_n);                                 \
+        __assert_size(X, i_n * (K));                                \
+        __assert_size(VAL, (K) * n_outputs);                        \
                                                                     \
         const weight_t *w = W;                                      \
         const weight_t *b = B;                                      \
@@ -30,18 +30,18 @@
         const value_t *exp_val = VAL;                               \
         value_t *val = malloc(i_v * sizeof(value_t));               \
                                                                     \
-        /*  Set the custom weights and biases */                    \
-        memcpy(nn->weights_ptr, w, w_n * sizeof(weight_t));         \
-        if (b_n) memcpy(nn->biases_ptr, b, b_n * sizeof(weight_t)); \
+        /* Set the custom weights and biases */                     \
+        memcpy(nn->weights.ptr, w, w_n * sizeof(weight_t));         \
+        if (b_n) memcpy(nn->biases.ptr, b, b_n * sizeof(weight_t)); \
                                                                     \
-        _nn_alloc_batch(nn, (K), __func__, __FILE__, __LINE__);     \
-        nn->batch_outputs[-1] = x;                                  \
-        nn_batch_forward_pass(nn, (K));                             \
+        _nn_alloc_interm(nn, (K));                                  \
+        NN_INPUT(nn) = x;                                           \
+        _nn_batch_forward_pass(nn, (K));                            \
                                                                     \
         for (int k = 0, val_i = 0; k < K; k++) {                    \
             for (int i = 0; i < l_n; i++) {                         \
-                const int n = nn->n_dims[i];                        \
-                const value_t *o = nn->batch_outputs[i] + k * n;    \
+                const int n = nn->num_of_dims[i];                   \
+                const value_t *o = nn->interm.outputs[i] + k * n;   \
                 memcpy(val + val_i, o, n * sizeof(value_t));        \
                 val_i += n;                                         \
             }                                                       \
@@ -49,9 +49,9 @@
                                                                     \
         __exp_check_lf(name " (outputs)", i_v, val, 1e-6);          \
                                                                     \
-        assert(nn->output == nn->batch_outputs[l_n - 1]);           \
+        assert(NN_OUTPUT(nn) == nn->interm.outputs[l_n - 1]);       \
                                                                     \
-        _nn_free_batch(nn);                                         \
+        _nn_free_interm(nn);                                        \
         free(val);                                                  \
     } while (0)
 
@@ -62,10 +62,10 @@ int main ()
 
 
     nn_spec_t spec1[] = {
-        input_layer(2),
-        dense_layer(2, b, relu),
-        dense_layer(2, b, logistic),
-        output_layer()
+        nnl_input(2),
+        nnl_dense(2, 1, RELU_OP, NO_REG),
+        nnl_dense(2, 1, LOGISTIC_OP, NO_REG),
+        NN_SPEC_END
     };
 
     nn_struct_t *nn1 = nn_create(spec1);

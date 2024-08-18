@@ -7,25 +7,27 @@
 #include "../../src/nn/nn_internal.h"
 
 
-/*  Check sizes of given expected value arrays */
-#define nn_batch_backward_pass_size_check(nn, n_vals,       \
-                        K, W, B, X, VAL, T, gO, gW, gB)     \
-    do {                                                    \
-        _Static_assert((K)  >  0, "batch size > 0");        \
-                                                            \
-        assert(__arr_count(W)  == nn->total_weights);       \
-        assert(__arr_count(gW) == nn->total_weights);       \
-        assert(__arr_count_null(B)  == (unsigned) nn->total_biases);   \
-        assert(__arr_count_null(gB) == (unsigned) nn->total_biases);   \
-        assert(__arr_count(X) == nn->input_dims * (K));     \
-        assert(__arr_count(VAL) == n_vals * (K));           \
-        assert(__arr_count(gO) == nn->output_dims * (K));   \
-        assert(__arr_count(T) == nn->output_dims * (K));    \
+/* Check sizes of given expected value arrays */
+#define nn_batch_backward_pass_size_check(nn, n_vals,   \
+                        K, W, B, X, VAL, T, gO, gW, gB) \
+    do {                                                \
+        _Static_assert((K) > 0, "batch size > 0");      \
+                                                        \
+        __assert_size(W, nn->weights.total);            \
+        __assert_size(gW, nn->weights.total);           \
+        __assert_size_null(B, nn->biases.total);        \
+        __assert_size_null(gB, nn->biases.total);       \
+        __assert_size(X, NN_INPUT_DIMS(nn) * (K));      \
+        __assert_size(VAL, n_vals * (K));               \
+        __assert_size(gO, NN_OUTPUT_DIMS(nn) * (K));    \
+        __assert_size(T, NN_OUTPUT_DIMS(nn) * (K));     \
     } while (0)
 
 
-/*  Does the whole process of forward and backward pass
-    in order to check the outputs, output gradients and weight/bias gradients */
+/*
+ * Does the whole process of forward and backward pass
+ * in order to check the outputs, output gradients and weight/bias gradients
+ */
 static inline void nn_batch_backward_pass_test_grads(const char *name,
     nn_struct_t *nn, int batch_size, int iterm_n,
     const weight_t *w, const weight_t *b, value_t *x, const value_t *t,
@@ -34,40 +36,39 @@ static inline void nn_batch_backward_pass_test_grads(const char *name,
     const weight_t *exp_gw,
     const weight_t *exp_gb)
 {
-    const int w_n = nn->total_weights;
-    const unsigned b_n = nn->total_biases;
-    const int l_n = nn->n_layers;
-    const int o_n = nn->output_dims * batch_size;
-    const grad_t *gw = nn->gw_ptr;
-    const grad_t *gb = nn->gb_ptr;
+    const int w_n = nn->weights.total;
+    const int b_n = nn->biases.total;
+    const int l_n = nn->num_of_layers;
+    const int o_n = NN_OUTPUT_DIMS(nn) * batch_size;
+    const grad_t *gw = nn->grad.ptr;
+    const grad_t *gb = nn->grad.ptr + nn->weights.total;
 
-    /*  Need to manually handle memory management */
-    _nn_alloc_batch(nn, batch_size, __func__, __FILE__, __LINE__);
-    _nn_alloc_grad(nn, batch_size, __func__, __FILE__, __LINE__);
+    /* Need to manually handle memory management */
+    _nn_alloc_interm(nn, batch_size);
+    _nn_alloc_grad(nn, batch_size);
     value_t *val = malloc(iterm_n * sizeof(value_t));
     grad_t *go = malloc(o_n * sizeof(grad_t));
 
-    /*  Set the custom weights and biases */
-    memcpy(nn->weights_ptr, w, w_n * sizeof(weight_t));
-    if (b_n) memcpy(nn->biases_ptr, b, b_n * sizeof(weight_t));
+    /* Set the custom weights and biases */
+    memcpy(nn->weights.ptr, w, w_n * sizeof(weight_t));
+    if (b_n) memcpy(nn->biases.ptr, b, b_n * sizeof(weight_t));
 
-    nn->batch_outputs[-1] = x;
-    nn_batch_forward_pass(nn, batch_size);
-    loss_diff_grad(o_n, nn->output, t, nn->g_out);
-    assert(nn->output == nn->batch_outputs[l_n - 1]);
+    NN_INPUT(nn) = x;
+    _nn_batch_forward_pass(nn, batch_size);
+    loss_diff_grad(o_n, NN_OUTPUT(nn), t, nn->grad.out);
 
-    /*  Copy the values of intermediate values and output gradients */
-    memcpy(go, nn->g_out, o_n * sizeof(grad_t));
+    /* Copy the values of intermediate values and output gradients */
+    memcpy(go, nn->grad.out, o_n * sizeof(grad_t));
     for (int k = 0, val_i = 0; k < batch_size; k++) {
         for (int i = 0; i < l_n; i++) {
-            const int n = nn->n_dims[i];
-            const value_t *o = nn->batch_outputs[i] + k * n;
+            const int n = nn->num_of_dims[i];
+            const value_t *o = nn->interm.outputs[i] + k * n;
             memcpy(val + val_i, o, n * sizeof(value_t));
             val_i += n; // index in the val array
         }
     }
 
-    nn_batch_backward_pass(nn, batch_size);
+    _nn_batch_backward_pass(nn, batch_size);
 
     printf("\nTest %s\n", name);
     __exp_check_lf("intermediate values  ", iterm_n, val, 1e-6);
@@ -75,7 +76,7 @@ static inline void nn_batch_backward_pass_test_grads(const char *name,
     __exp_check_lf("weight gradients     ", w_n, gw, 1e-6);
     __exp_check_lf("bias gradients       ", b_n, gb, 1e-6);
 
-    _nn_free_batch(nn);
+    _nn_free_interm(nn);
     _nn_free_grad(nn);
     free(val);
     free(go);
@@ -86,8 +87,8 @@ static inline void nn_batch_backward_pass_test_grads(const char *name,
                                     VAL, T, gO, gW, gB)             \
     do {                                                            \
         int n_vals = 0;                                             \
-        for (int i = 0; i < nn->n_layers; i++)                      \
-            n_vals += nn->n_dims[i];                                \
+        for (int i = 0; i < nn->num_of_layers; i++)                 \
+            n_vals += nn->num_of_dims[i];                           \
                                                                     \
         nn_batch_backward_pass_size_check(nn, n_vals, K, W, B, X,   \
                                           VAL, T, gO, gW, gB);      \
@@ -103,15 +104,15 @@ int main ()
 
 
     nn_spec_t spec1[] = {
-        input_layer(2),
-        dense_layer(2, b, relu),
-        dense_layer(2, b, logistic),
-        output_layer()
+        nnl_input(2),
+        nnl_dense(2, 1, RELU_OP, NO_REG),
+        nnl_dense(2, 1, LOGISTIC_OP, NO_REG),
+        NN_SPEC_END
     };
 
     nn_struct_t *nn1 = nn_create(spec1);
 
-    /*  Computed with testgrad1.m */
+    /* Computed with testgrad1.m */
     nn_batch_backward_pass_test("r:l 2->2, k=3 (1)", nn1, 3,
         ((weight_t[])   {1.3, -0.9, -1.1, 0.4, -0.7, -1.6, 0.3, 2.0}),
         ((weight_t[])   {-0.1, 0.1, 0.25, 0.15}),
@@ -132,7 +133,7 @@ int main ()
         ((grad_t[])     {0.0847346460, -0.0046959529, -0.0781608007, 0.0939344824})
     );
 
-    /*  Computed with testgrad2.m */
+    /* Computed with testgrad2.m */
     nn_batch_backward_pass_test("r:l 2->2, k=3 (2)", nn1, 3,
         ((weight_t[])   {-0.47, -0.23, -0.59, 0.41, 0.33, -0.60, 0.27, 0.56}),
         ((weight_t[])   {0.01, -0.01, -0.01, 0.01}),
@@ -157,16 +158,16 @@ int main ()
 
 
     nn_spec_t spec2[] = {
-        input_layer(2),
-        dense_layer(2, b, lrelu),
-        dense_layer(2, b, tanh),
-        output_layer()
+        nnl_input(2),
+        nnl_dense(2, 1, LRELU_OP, NO_REG),
+        nnl_dense(2, 1, TANH_OP, NO_REG),
+        NN_SPEC_END
     };
 
     nn_struct_t *nn2 = nn_create(spec2);
     nn2->learning_rate = 0.02;
 
-    /*  Computed with testgrad3.m */
+    /* Computed with testgrad3.m */
     nn_batch_backward_pass_test("lr:t 2->2, k=6", nn2, 6,
         ((weight_t[])   {-0.47, -0.23, -0.59, 0.41, 0.33, -0.60, 0.27, 0.56}),
         ((weight_t[])   {0.01, -0.01, -0.01, 0.01}),

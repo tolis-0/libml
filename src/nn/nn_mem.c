@@ -1,112 +1,101 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <errno.h>
 #include "../../include/nn.h"
+#include "nn_internal.h"
 
 
-#define _nn_malloc_error(var) _nn_alloc_error(m, var)
-#define _nn_realloc_error(var) _nn_alloc_error(re, var)
-
-#define _nn_alloc_error(m, var)                                     \
-    if (__builtin_expect(((var) == NULL), 0)) {                     \
-        fprintf(stderr, "\e[1;39m%s\e[0;39m"                        \
-            " (from \e[1;39m%s:%d\e[0;39m) \e[1;31merror\e[0;39m:"  \
-            " " #m "alloc failed for " #var ", %s\n",               \
-            func, file, line, strerror(errno)                       \
-        );                                                          \
-        exit(EXIT_FAILURE);                                         \
-    }
-
-
-/*  Allocates memory for the batch intermediate values and outputs */
-void _nn_alloc_batch(nn_struct_t *nn, int batch_size,
-    const char *func, const char *file, int line)
+/*
+ * Allocates memory for the intermediate values
+ * based on given batch size
+ * TODO: use nni->ptr or nni->outputs[0] for the allocation
+ */
+void _nn_alloc_interm(nn_struct_t *nn, int batch_size)
 {
-    const int bsize = batch_size * sizeof(value_t);
-    int i;
+    nn_intermv_t *restrict const nni = &nn->interm;
 
-    if (nn->k == 0) {
-        for (i = 0; i < nn->n_layers; i++) {
-            nn->batch_outputs[i] = malloc(nn->n_dims[i] * bsize);
-            _nn_malloc_error(nn->batch_outputs[i]);
+    if (nni->batch_size == 0) {
+        for (int i = 0; i < nn->num_of_layers; i++) {
+            const size_t size = batch_size * nn->num_of_dims[i];
+            __ml_malloc_check(nni->outputs[i], value_t, size);
         }
 
-        nn->k = batch_size;
-    } else if (batch_size > nn->k) {
-        for (i = 0; i < nn->n_layers; i++) {
-            free(nn->batch_outputs[i]);
+        nni->batch_size = batch_size;
+    } else if (batch_size > nni->batch_size) {
+        for (int i = 0; i < nn->num_of_layers; i++) {
+            free(nni->outputs[i]);
 
-            nn->batch_outputs[i] = malloc(nn->n_dims[i] * bsize);
-            _nn_malloc_error(nn->batch_outputs[i]);
+            const size_t size = batch_size * nn->num_of_dims[i];
+            __ml_malloc_check(nni->outputs[i], value_t, size);
         }
 
-        nn->k = batch_size;
+        nni->batch_size = batch_size;
     }
 
-    if (batch_size > nn->ones_n) {
-        nn->ones = realloc(nn->ones, bsize);
-        _nn_realloc_error(nn->ones);
+    if (batch_size > nni->ones_size) {
+        __ml_realloc_check(nni->ones, value_t, batch_size);
 
-        for (i = nn->ones_n; i < batch_size; i++)
-            nn->ones[i] = 1.0;
+        for (int i = nni->ones_size; i < batch_size; i++)
+            nni->ones[i] = __ml_fpc(1.0);
 
-        nn->ones_n = batch_size;
+        nni->ones_size = batch_size;
     }
 }
 
 
-/*  Free memory from batch outputs */
-void _nn_free_batch(nn_struct_t *nn)
+/*
+ * Free memory used for intermediate values and outputs
+ */
+void _nn_free_interm(nn_struct_t *nn)
 {
-    for (int i = 0; i < nn->n_layers; i++) {
-        free(nn->batch_outputs[i]);
-        nn->batch_outputs[i] = NULL;
+    nn_intermv_t *restrict const nni = &nn->interm;
+
+    for (int i = 0; i < nn->num_of_layers; i++) {
+        free(nni->outputs[i]);
+        nni->outputs[i] = NULL;
     }
 
-    nn->batch_outputs[-1] = NULL;
-
-    nn->k = 0;
+    nni->outputs[-1] = NULL;
+    nni->batch_size = 0;
 }
 
 
-/*  Allocate memory for gradients */
-void _nn_alloc_grad(nn_struct_t *nn, int batch_size,
-    const char *func, const char *file, int line)
+/*
+ * Allocate memory for gradients based on given batch size
+ */
+void _nn_alloc_grad(nn_struct_t *nn, int batch_size)
 {
-    const int gi_s = batch_size * nn->go_n * sizeof(value_t);
+    const int size = batch_size * nn->max_dims;
+    nn_gradv_t *restrict const nng = &nn->grad;
 
-    if (nn->g_k == 0) {
-        nn->g_out = malloc(gi_s);
-        _nn_malloc_error(nn->g_out);
+    if (nng->batch_size == 0) {
+        __ml_malloc_check(nng->out, grad_t, size);
+        __ml_malloc_check(nng->in, grad_t, size);
 
-        nn->g_in = malloc(gi_s);
-        _nn_malloc_error(nn->g_in);
+        nng->batch_size = batch_size;
+    } else if (batch_size > nng->batch_size) {
+        free(nng->out);
+        free(nng->in);
 
-        nn->g_k = batch_size;
-    } else if (batch_size > nn->g_k) {
-        free(nn->g_out);
-        free(nn->g_in);
+        __ml_malloc_check(nng->out, grad_t, size);
+        __ml_malloc_check(nng->in, grad_t, size);
 
-        nn->g_out = malloc(gi_s);
-        _nn_malloc_error(nn->g_out);
-
-        nn->g_in = malloc(gi_s);
-        _nn_malloc_error(nn->g_in);
-
-        nn->g_k = batch_size;
+        nng->batch_size = batch_size;
     }
 }
 
 
-/*  Free memory from gradients */
+/*
+ * Free memory used for gradients
+ */
 void _nn_free_grad(nn_struct_t *nn)
 {
-    free(nn->g_in);
-    free(nn->g_out);
+    nn_gradv_t *restrict const nng = &nn->grad;
 
-    nn->g_out = NULL;
-    nn->g_in = NULL;
+    free(nng->out);
+    free(nng->in);
 
-    nn->g_k = 0;
+    nng->out = NULL,
+    nng->in = NULL;
+
+    nng->batch_size = 0;
 }

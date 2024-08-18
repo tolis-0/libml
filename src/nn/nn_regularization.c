@@ -15,15 +15,15 @@ static inline void _nn_l2_reg(int n, weight_t p, cwrp_t w, grp_t gw)
 }
 
 
-void _nn_regularization(int n, nn_reg_t type, weight_t p, cwrp_t w, grp_t gw)
+void _nn_regularization(int n, nn_reg_t *reg, cwrp_t w, grp_t gw)
 {
-    switch(type) {
-        case NONE: break;
-        case L1:
-            _nn_l1_reg(n, p, w, gw);
+    switch (reg->type) {
+        case ZERO_REG: break;
+        case L1_REG:
+            _nn_l1_reg(n, reg->p1, w, gw);
             break;
-        case L2:
-            _nn_l2_reg(n, p, w, gw);
+        case L2_REG:
+            _nn_l2_reg(n, reg->p2, w, gw);
             break;
     }
 }

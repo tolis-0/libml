@@ -12,13 +12,13 @@ NN_CREATE_SOURCES = \
 	$(DIR)/nn/nn_create.c \
 	$(DIR)/nn/nn_destroy.c \
 	$(DIR)/nn/nn_weights.c \
+	$(DIR)/error.c \
 	$(DIR)/opt/opt_create.c \
 	$(DIR)/opt/opt_apply.c
 NN_FORWARD_PASS_SOURCES = $(NN_CREATE_SOURCES) \
 	$(DIR)/nn/nn_forward_pass.c \
 	$(DIR)/nn/nn_mem.c \
-	$(DIR)/activations.c \
-	$(DIR)/layers/dense.c
+	$(wildcard $(DIR)/layers/*.c $(DIR)/layers/**/*.c)
 NN_BACKWARD_PASS_SOURCES = $(NN_FORWARD_PASS_SOURCES) \
 	$(DIR)/nn/nn_backward_pass.c \
 	$(DIR)/nn/nn_regularization.c \
