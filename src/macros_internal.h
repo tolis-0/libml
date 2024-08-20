@@ -1,5 +1,5 @@
 #ifndef _MACROS_INTERNAL_H
-#define _MACROS_INTERNAL_H 
+#define _MACROS_INTERNAL_H
 
 
 #if defined(__GNUC__) || defined(__clang__)

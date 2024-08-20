@@ -33,7 +33,7 @@ void _ml_throw_error(const char *str, ...)
     const char *const func = ml_error_info.func;
     const char *const file = ml_error_info.file;
     const int line         = ml_error_info.line;
-    
+
     va_list args;
     va_start(args, str);
 
