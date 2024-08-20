@@ -11,7 +11,7 @@
 #define FP_2        __ml_fpc(2.0)
 
 
-static unsigned _rand_seed()
+static unsigned _rand_seed(void)
 {
     unsigned seed = (unsigned) (unsigned long long) &seed;
     seed ^= (unsigned) time(NULL);

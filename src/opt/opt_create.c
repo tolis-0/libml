@@ -10,7 +10,7 @@ const opt_create_t opt_create = {
 
 
 /*  Initialize a GD optimizer */
-ml_opt_t opt_create_gd()
+ml_opt_t opt_create_gd(void)
 {
     const ml_opt_t opt = {
         .call = opt_apply_gd,

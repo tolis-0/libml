@@ -53,7 +53,7 @@ typedef struct {
  * and declarations as extern
  */
 typedef struct {
-    ml_opt_t (*gd)();
+    ml_opt_t (*gd)(void);
     ml_opt_t (*cm)(weight_t beta);
     ml_opt_t (*nag)(weight_t beta);
 } opt_create_t;
@@ -62,7 +62,7 @@ extern const opt_create_t opt_create;
 
 
 /* opt/opt_create.c declarations */
-ml_opt_t opt_create_gd();
+ml_opt_t opt_create_gd(void);
 ml_opt_t opt_create_cm(weight_t beta);
 ml_opt_t opt_create_nag(weight_t beta);
 

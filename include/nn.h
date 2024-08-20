@@ -235,12 +235,12 @@ value_t loss_mse(int n, cvrp_t y, cvrp_t t);
 
 
 /* Macros for nn/ functions */
-#define nn_create(args...)      (__ml_error_update(nn_create),   _nn_create(args))
-#define nn_destroy(args...)     (__ml_error_update(nn_destroy),  _nn_destroy(args))
-#define nn_train(args...)       (__ml_error_update(nn_train),    _nn_train(args))
-#define nn_accuracy(args...)    (__ml_error_update(nn_accuracy), _nn_accuracy(args))
-#define nn_predict(args...)     (__ml_error_update(nn_predict),  _nn_predict(args))
-#define nn_loss(args...)        (__ml_error_update(nn_loss),     _nn_loss(args))
+#define nn_create(...)   (__ml_error_update(nn_create),   _nn_create(__VA_ARGS__))
+#define nn_destroy(...)  (__ml_error_update(nn_destroy),  _nn_destroy(__VA_ARGS__))
+#define nn_train(...)    (__ml_error_update(nn_train),    _nn_train(__VA_ARGS__))
+#define nn_accuracy(...) (__ml_error_update(nn_accuracy), _nn_accuracy(__VA_ARGS__))
+#define nn_predict(...)  (__ml_error_update(nn_predict),  _nn_predict(__VA_ARGS__))
+#define nn_loss(...)     (__ml_error_update(nn_loss),     _nn_loss(__VA_ARGS__))
 
 
 /* nn/ declarations */

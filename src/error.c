@@ -38,8 +38,8 @@ void _ml_throw_error(const char *str, ...)
     va_start(args, str);
 
     if (_ml_use_ansi_escape()) {
-        fprintf(stderr, "\e[1;39m%s\e[0;39m (from \e[1;39m%s:%d\e[0;39m) "
-            "\e[1;31merror\e[0;39m: ", func, file, line);
+        fprintf(stderr, "\x1B[1;39m%s\x1B[0;39m (from \x1B[1;39m%s:%d\x1B[0;39m) "
+            "\x1B[1;31merror\x1B[0;39m: ", func, file, line);
     } else {
         fprintf(stderr, "%s (from %s:%d) error: ", func, file, line);
     }
