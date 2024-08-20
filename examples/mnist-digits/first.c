@@ -18,19 +18,19 @@ int main ()
     uint8_t *ub_data;
     value_t *data, *labels, *test_data, *test_labels;
 
-    ub_data = mnist_load_alloc("data/train-images.idx3-ubyte", UBYTE_TYPE, 3, TRAIN_SIZE, 28, 28);
-    data = ml_ubyte_convert(ub_data, TRAIN_SIZE*28*28);
+    ub_data = ld_mnist_alloc("data/train-images.idx3-ubyte", UBYTE_TYPE, 3, TRAIN_SIZE, 28, 28);
+    data = ld_convert_ubyte(ub_data, TRAIN_SIZE*28*28);
     norm_minmax(data, TRAIN_SIZE, 28*28);
 
-    ub_data = mnist_load_alloc("data/train-labels.idx1-ubyte", UBYTE_TYPE, 1, TRAIN_SIZE);
-    labels = ml_ubyte_onehot(ub_data, TRAIN_SIZE, 10);
+    ub_data = ld_mnist_alloc("data/train-labels.idx1-ubyte", UBYTE_TYPE, 1, TRAIN_SIZE);
+    labels = ld_onehot_ubyte(ub_data, TRAIN_SIZE, 10);
 
-    ub_data = mnist_load_alloc("data/t10k-images.idx3-ubyte", UBYTE_TYPE, 3, TEST_SIZE, 28, 28);
-    test_data = ml_ubyte_convert(ub_data, TEST_SIZE*28*28);
+    ub_data = ld_mnist_alloc("data/t10k-images.idx3-ubyte", UBYTE_TYPE, 3, TEST_SIZE, 28, 28);
+    test_data = ld_convert_ubyte(ub_data, TEST_SIZE*28*28);
     norm_minmax(test_data, TEST_SIZE, 28*28);
 
-    ub_data = mnist_load_alloc("data/t10k-labels.idx1-ubyte", UBYTE_TYPE, 1, TEST_SIZE);
-    test_labels = ml_ubyte_onehot(ub_data, TEST_SIZE, 10);
+    ub_data = ld_mnist_alloc("data/t10k-labels.idx1-ubyte", UBYTE_TYPE, 1, TEST_SIZE);
+    test_labels = ld_onehot_ubyte(ub_data, TEST_SIZE, 10);
 
     nn_spec_t mlp_spec[] = {
         nnl_input(28*28),
