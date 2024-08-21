@@ -15,6 +15,14 @@
 #define DOUBLE_TYPE 0x0E
 
 
+typedef struct {
+    value_t *train_images;
+    value_t *train_labels;
+    value_t *test_images;
+    value_t *test_labels;
+} ld_img_data_t;
+
+
 /* mnist_alloc.c declarations */
 void *_ld_mnist_alloc(const char *filename, int type, int dim, ...);
 
@@ -32,6 +40,9 @@ value_t *_ld_onehot_sbyte(int8_t *data, int n, int categories);
 value_t *_ld_onehot_short(short *data, int n, int categories);
 value_t *_ld_onehot_int(int *data, int n, int categories);
 
+/* ld_mnist_img_alloc.c and ld_mnist_img_free declarations */
+ld_img_data_t _ld_mnist_img_alloc(const char *filename[4], const dim_t dims, int train_size, int test_size, int categories);
+void ld_mnist_img_free(ld_img_data_t img_data);
 
 /* Macros for loader/ functions */
 #define ld_mnist_alloc(...) (__ml_error_update(ld_mnist_alloc), _ld_mnist_alloc(__VA_ARGS__))
@@ -52,5 +63,7 @@ value_t *_ld_onehot_int(int *data, int n, int categories);
 #define ld_onehot_sbyte(...) (__ml_error_update(ld_onehot_sbyte), _ld_onehot_sbyte(__VA_ARGS__))
 #define ld_onehot_short(...) (__ml_error_update(ld_onehot_short), _ld_onehot_short(__VA_ARGS__))
 #define ld_onehot_int(...) (__ml_error_update(ld_onehot_int), _ld_onehot_int(__VA_ARGS__))
+
+#define ld_mnist_img_alloc(...) (__ml_error_update(ld_mnist_img_alloc), _ld_mnist_img_alloc(__VA_ARGS__))
 
 #endif // _ML_LOADER_H
